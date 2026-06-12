@@ -1,0 +1,69 @@
+{
+  "project_info": {
+    "project_number": "467028334638",
+    "firebase_url": "https://krushisetu-1908c.firebaseio.com",
+    "project_id": "krushisetu-1908c",
+    "storage_bucket": "krushisetu-1908c.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:467028334638:android:1742169552c17a57c227bf",
+        "android_client_info": {
+          "package_name": "com.droptechsolution.menus"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "467028334638-2j6oa4boki4pdff7puaj0a5rnog2581o.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBbG0ZhnhIVH2CvwZ1UaT3J8b9mur1nYBs"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "467028334638-2j6oa4boki4pdff7puaj0a5rnog2581o.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:467028334638:android:6f37c669e34cef5bc227bf",
+        "android_client_info": {
+          "package_name": "com.krushisetu.krushisetuapp"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "467028334638-2j6oa4boki4pdff7puaj0a5rnog2581o.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBbG0ZhnhIVH2CvwZ1UaT3J8b9mur1nYBs"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "467028334638-2j6oa4boki4pdff7puaj0a5rnog2581o.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

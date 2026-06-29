@@ -41,18 +41,21 @@ kotlin {
     iosX64 {
         binaries.framework {
             baseName = xcfName
+            export(libs.androidx.lifecycle.viewmodel.androidx)
         }
     }
 
     iosArm64 {
         binaries.framework {
             baseName = xcfName
+            export(libs.androidx.lifecycle.viewmodel.androidx)
         }
     }
 
     iosSimulatorArm64 {
         binaries.framework {
             baseName = xcfName
+            export(libs.androidx.lifecycle.viewmodel.androidx)
         }
     }
 
@@ -65,13 +68,17 @@ kotlin {
 
         commonMain.dependencies {
 
+            implementation(libs.androidx.lifecycle.viewmodel)
+            implementation(libs.androidx.lifecycle.viewmodel.compose)
+            implementation(libs.androidx.navigation.compose)
+
             implementation(libs.kotlin.stdlib)
             implementation(compose.runtime)
             implementation(compose.foundation)
             implementation(compose.material3)
+            implementation(compose.materialIconsExtended)
             implementation(compose.ui)
             implementation(compose.components.uiToolingPreview)
-            implementation(libs.navigation.compose)
             implementation("io.ktor:ktor-client-core:2.3.7")
             implementation("io.ktor:ktor-client-content-negotiation:2.3.7")
             implementation("io.ktor:ktor-serialization-kotlinx-json:2.3.7")
@@ -80,6 +87,8 @@ kotlin {
 
         androidMain.dependencies {
             implementation("io.ktor:ktor-client-okhttp:2.3.7")
+            implementation("com.google.firebase:firebase-messaging-ktx:24.1.2")
+            implementation( "androidx.lifecycle:lifecycle-viewmodel-ktx:2.5.0") // or higher
         }
 
         commonTest {

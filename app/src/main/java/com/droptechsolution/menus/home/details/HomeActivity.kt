@@ -15,7 +15,7 @@ import com.droptechsolution.menus.MenusApplication
 import com.droptechsolution.menus.home.HomeViewModel
 import com.droptechsolution.menus.home.HomeViewModelFactory
 import com.droptechsolution.menus.ui.theme._1MenusTheme
-import com.droptechsolution.shared.ui.navigation.MenusNavHost
+import com.droptechsolution.shared.navigation.MenusNavHost
 import javax.inject.Inject
 
 class HomeActivity: ComponentActivity() {

@@ -51,9 +51,9 @@ class HomeViewModel @Inject constructor(private val tokenService: ITokenService)
             Log.v("HomeViewModel", "Token : $pushToken")
 
 //            val info = OutletApi().staffLogin(StaffLoginRequest(outletId = "5", username = "cafe99mgr", password = "cafe99mgr", deviceId = pushToken?:"", deviceType = "android"))
-            val info = OutletApi().staffLogin(StaffLoginRequest(outletId = "5", username = username, password = password, deviceId = pushToken?:"", deviceType = "android"))
+            val info = OutletApi().staffLogin(StaffLoginRequest(outletId = "5", username = username, password = password, deviceId = pushToken?:"", deviceType = "android", userType = "STAFF"))
             Log.v("HomeViewModel", "${info}")
-            if(!info.isEmpty())
+            if(!info.status)
             {
                 _loginState.postValue(true)
             }

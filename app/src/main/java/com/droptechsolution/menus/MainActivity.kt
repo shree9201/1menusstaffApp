@@ -38,7 +38,7 @@ import com.droptechsolution.menus.home.HomeViewModelFactory
 import com.droptechsolution.menus.home.ILoginClicked
 import com.droptechsolution.menus.home.details.HomeActivity
 import com.droptechsolution.menus.ui.theme._1MenusTheme
-import com.droptechsolution.shared.ui.navigation.MenusNavHost
+import com.droptechsolution.shared.navigation.MenusNavHost
 import javax.inject.Inject
 
 
@@ -82,11 +82,6 @@ class MainActivity : ComponentActivity(), ILoginClicked {
         setContent {
             _1MenusTheme {
                 Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-//                    Greeting(
-//                        name = "Android",
-//                        modifier = Modifier.padding(innerPadding),
-//                        this
-//                    )
                     MenusNavHost(modifier = Modifier.padding(innerPadding))
                 }
             }

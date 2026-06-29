@@ -12,3 +12,7 @@ val MenusTeal = Color(0xFF115E59)
 val MenusOnMain = Color.White
 val MenusText = Color.White
 val MenusTextMuted = Color.White.copy(alpha = 0.92f)
+val BG_WHITE =  Color.White
+val BG_LIGHT= Color(0XFFEEF3F8)
+val BLACK = Color(0XFF10213A)
+val TextMuted = Color(0XFF6B7280)

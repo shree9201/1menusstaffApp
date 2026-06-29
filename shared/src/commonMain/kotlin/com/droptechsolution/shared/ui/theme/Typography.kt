@@ -21,6 +21,13 @@ object MenusTextStyles {
         textAlign = TextAlign.Start
     )
 
+    val landingParagraphMuted = TextStyle(
+        color = TextMuted,
+        fontSize = 14.sp,
+        lineHeight = 21.sp,
+        textAlign = TextAlign.Start
+    )
+
     val landingCenterParagraph = TextStyle(
         color = MenusTextMuted,
         fontSize = 14.sp,
@@ -34,8 +41,20 @@ object MenusTextStyles {
         fontWeight = FontWeight.ExtraBold
     )
 
+    val loginTitleDark = TextStyle(
+        color = BLACK,
+        fontSize = 18.sp,
+        fontWeight = FontWeight.ExtraBold
+    )
+
     val formLabel = TextStyle(
         color = MenusText,
+        fontSize = 12.sp,
+        fontWeight = FontWeight.Bold
+    )
+
+    val formLabelDark = TextStyle(
+        color = BLACK,
         fontSize = 12.sp,
         fontWeight = FontWeight.Bold
     )

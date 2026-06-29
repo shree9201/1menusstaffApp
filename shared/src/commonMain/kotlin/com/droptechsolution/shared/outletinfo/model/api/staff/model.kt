@@ -8,7 +8,8 @@ data class StaffLoginRequest(
     val username: String,
     val password: String,
     val deviceId: String,
-    val deviceType:String
+    val deviceType:String,
+    val userType  :String
 )
 
 @Serializable

@@ -22,12 +22,13 @@ class OutletApi {
         }.body()
     }
 
-    suspend fun staffLogin(request: StaffLoginRequest): List<StaffDetailsResponse> {
-        val response = HttpClientProvider.client.post(URN.SERVER+"/"+URN.STAFF_LOGIN)
+    suspend fun staffLogin(request: StaffLoginRequest): StaffDetailsResponse {
+        val response = HttpClientProvider.client.post(URN.SERVER+""+URN.STAFF_LOGIN)
         {
             contentType(ContentType.Application.Json)
             setBody(request)
         }
+        println(request)
         val textResponse = response
         var text_response = textResponse.bodyAsText()
         println(text_response)

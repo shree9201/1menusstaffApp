@@ -19,6 +19,9 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -41,14 +44,26 @@ import com.droptechsolution.shared.ui.theme.MenusGradients
 import com.droptechsolution.shared.ui.theme.MenusTextStyles
 import com.droptechsolution.shared.ui.theme.MenusTheme
 import org.jetbrains.compose.ui.tooling.preview.Preview
+import org.koin.compose.viewmodel.koinViewModel
 
 @Composable
 fun LoginScreen(
     modifier: Modifier = Modifier,
     onLoginClick: () -> Unit = {},
     onGuideClick: () -> Unit = {},
-    onPartnerClick: () -> Unit = {}
+    onPartnerClick: () -> Unit = {},
+    onLoginSuccess : () -> Unit = {},
+    viewModel: LoginViewModel = koinViewModel(),
 ) {
+    viewModel.checkUserInfo()
+    val isLoading by viewModel._isLoggedIn.collectAsState()
+
+    LaunchedEffect(isLoading) {
+        if (isLoading) {
+            onLoginSuccess()
+        }
+    }
+
     MenusTheme {
         Surface(
             modifier = modifier

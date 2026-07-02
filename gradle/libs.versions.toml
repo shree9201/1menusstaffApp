@@ -21,6 +21,7 @@ androidx-viewmodel = "2.8.4"
 #androidx-navigation = "2.8.9"
 androidx-navigation = "2.8.0-alpha10"
 firebaseMessagingKtx = "25.0.2"
+koin = "4.0.0"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -41,8 +42,8 @@ kotlin-stdlib = { group = "org.jetbrains.kotlin", name = "kotlin-stdlib", versio
 kotlin-test = { group = "org.jetbrains.kotlin", name = "kotlin-test", version.ref = "kotlinTest" }
 androidx-runner = { group = "androidx.test", name = "runner", version.ref = "runner" }
 androidx-core = { group = "androidx.test", name = "core", version.ref = "core" }
-#androidx-datastore = {group = "androidx-datastore", name="datastore",version.ref ="datastore" }
-androidx-datastore = { group = "androidx.datastore", name = "datastore-preferences", version.ref = "datastore" }
+androidx-datastore = {group = "androidx-datastore", name="datastore",version.ref ="datastore" }
+androidx-datastore-pref = { group = "androidx.datastore", name = "datastore-preferences", version.ref = "datastore" }
 firebase-bom = { group = "com.google.firebase", name = "firebase-bom", version.ref = "firebase" }
 firebase-messaging = { group = "com.google.firebase", name = "firebase-messaging" }
 dagger = {group="com.google.dagger",name="dagger",version.ref="daggerVersion"}
@@ -52,7 +53,10 @@ androidx-lifecycle-viewmodel-androidx = { module = "androidx.lifecycle:lifecycle
 androidx-lifecycle-viewmodel-compose = { module = "org.jetbrains.androidx.lifecycle:lifecycle-viewmodel-compose", version.ref = "androidx-viewmodel" }
 androidx-navigation-compose = { module = "org.jetbrains.androidx.navigation:navigation-compose", version.ref = "androidx-navigation" }
 firebase-messaging-ktx = { group = "com.google.firebase", name = "firebase-messaging-ktx", version.ref = "firebaseMessagingKtx" }
-
+koin-core = { module = "io.insert-koin:koin-core", version.ref = "koin" }
+koin-compose = { module = "io.insert-koin:koin-compose", version.ref = "koin" }
+koin-compose-viewmodel = { module = "io.insert-koin:koin-compose-viewmodel", version.ref = "koin"}
+koin-android = { module = "io.insert-koin:koin-android", version.ref = "koin" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

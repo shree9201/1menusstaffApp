@@ -83,12 +83,24 @@ kotlin {
             implementation("io.ktor:ktor-client-content-negotiation:2.3.7")
             implementation("io.ktor:ktor-serialization-kotlinx-json:2.3.7")
             implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.0")
+
+            implementation("androidx.datastore:datastore-preferences:1.1.1")
+            implementation("androidx.datastore:datastore:1.1.1")
+
+//            implementation("io.insert-koin:koin-core:4.0.0")
+//            // Compose Multiplatform integration (if using Compose)
+//            implementation("io.insert-koin:koin-compose:4.0.0")
+            implementation(libs.koin.core)
+            implementation(libs.koin.compose)
+            implementation(libs.koin.compose.viewmodel)
+
         }
 
         androidMain.dependencies {
             implementation("io.ktor:ktor-client-okhttp:2.3.7")
             implementation("com.google.firebase:firebase-messaging-ktx:24.1.2")
             implementation( "androidx.lifecycle:lifecycle-viewmodel-ktx:2.5.0") // or higher
+            implementation(libs.koin.android)
         }
 
         commonTest {

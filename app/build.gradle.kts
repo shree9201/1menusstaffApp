@@ -56,7 +56,7 @@ dependencies {
     implementation(libs.firebase.messaging)
 
     //Data Store
-    implementation(libs.androidx.datastore)
+    implementation(libs.androidx.datastore.pref)
 
     //Dagger
     implementation(libs.dagger)

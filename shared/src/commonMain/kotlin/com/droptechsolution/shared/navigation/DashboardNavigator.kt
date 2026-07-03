@@ -8,7 +8,7 @@ import androidx.navigation.NavHostController
 class DashboardNavigator(
     private val navController: NavHostController,
 ) {
-    fun goToFeed() = navigateToTab(FeedRoute)
+    fun goToFeed() = navigateToTab(HomeRoute)
 
     fun goToProfile() = navigateToTab(ProfileRoute)
 
@@ -16,7 +16,7 @@ class DashboardNavigator(
 
     private inline fun <reified T : Any> navigateToTab(route: T) {
         navController.navigate(route) {
-            popUpTo<FeedRoute> { saveState = true }
+            popUpTo<HomeRoute> { saveState = true }
             launchSingleTop = true
             restoreState = true
         }

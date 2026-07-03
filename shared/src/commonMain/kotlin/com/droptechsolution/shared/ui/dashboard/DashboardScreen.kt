@@ -14,14 +14,12 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.droptechsolution.shared.navigation.DashboardNavigator
-import com.droptechsolution.shared.navigation.FeedRoute
+import com.droptechsolution.shared.navigation.HomeRoute
 import com.droptechsolution.shared.navigation.ProfileRoute
 import com.droptechsolution.shared.navigation.SettingsRoute
-import com.droptechsolution.shared.ui.feed.FeedScreen
+import com.droptechsolution.shared.ui.home.views.HomeScreen
 import com.droptechsolution.shared.ui.profile.ProfileScreen
 import com.droptechsolution.shared.ui.settings.SettingsScreen
-import com.droptechsolution.shared.ui.theme.MenusGradients
-import com.droptechsolution.shared.ui.theme.MenusTextStyles
 import com.droptechsolution.shared.ui.theme.MenusTheme
 import org.jetbrains.compose.ui.tooling.preview.Preview
 
@@ -37,7 +35,7 @@ fun DashboardScreen(
     val selectedTab = when {
         currentDestination?.hasRoute(ProfileRoute::class) == true -> DashboardTab.Profile
         currentDestination?.hasRoute(SettingsRoute::class) == true -> DashboardTab.Settings
-        else -> DashboardTab.Feed
+        else -> DashboardTab.Home
     }
 
     MenusTheme {
@@ -49,7 +47,7 @@ fun DashboardScreen(
                     selectedTab = selectedTab,
                     onTabSelected = { tab ->
                         when (tab) {
-                            DashboardTab.Feed -> dashboardNavigator.goToFeed()
+                            DashboardTab.Home -> dashboardNavigator.goToFeed()
                             DashboardTab.Profile -> dashboardNavigator.goToProfile()
                             DashboardTab.Settings -> dashboardNavigator.goToSettings()
                         }
@@ -59,13 +57,13 @@ fun DashboardScreen(
         ) { innerPadding ->
             NavHost(
                 navController = navController,
-                startDestination = FeedRoute,
+                startDestination = HomeRoute,
                 modifier = Modifier
                     .fillMaxSize()
                     .padding(innerPadding),
             ) {
-                composable<FeedRoute> {
-                    FeedScreen()
+                composable<HomeRoute> {
+                    HomeScreen(modifier = Modifier.fillMaxSize())
                 }
                 composable<ProfileRoute> {
                     ProfileScreen()

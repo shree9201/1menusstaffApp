@@ -16,6 +16,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import com.droptechsolution.shared.ui.theme.BG_LIGHT
 import com.droptechsolution.shared.ui.theme.MenusGradients
 import com.droptechsolution.shared.ui.theme.MenusTextStyles
 import org.jetbrains.compose.ui.tooling.preview.Preview
@@ -27,7 +28,7 @@ fun FeedScreen(
     Column(
         modifier = modifier
             .fillMaxSize()
-            .background(MenusGradients.appBackground)
+            .background(BG_LIGHT)
             .padding(24.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center,
@@ -36,19 +37,19 @@ fun FeedScreen(
             modifier = Modifier
                 .fillMaxWidth()
                 .clip(RoundedCornerShape(24.dp))
-                .background(MenusGradients.contentPanel)
+                .background(BG_LIGHT)
                 .padding(24.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
             Text(
                 modifier = Modifier.fillMaxWidth(),
-                text = "Feed",
+                text = "Feed1",
                 style = MenusTextStyles.landingTitle,
             )
             Spacer(modifier = Modifier.height(12.dp))
             Text(
                 modifier = Modifier.fillMaxWidth(),
-                text = "Role-based updates, announcements, and activity will appear here.",
+                text = "Role-based updates1111sdwdws, announcements, and activity will appear here.",
                 style = MenusTextStyles.landingCenterParagraph,
                 textAlign = TextAlign.Center,
             )

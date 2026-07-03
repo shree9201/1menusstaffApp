@@ -24,7 +24,7 @@ object DashboardRoute
  * Nested dashboard graph destinations — managed by [DashboardScreen]'s inner NavHost.
  */
 @Serializable
-object FeedRoute
+object HomeRoute
 
 @Serializable
 object ProfileRoute

@@ -7,10 +7,10 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.droptechsolution.menus.push.ITokenService
-import com.droptechsolution.shared.outletinfo.model.api.OutletApi
+import com.droptechsolution.shared.network.NetworkProvider
+import com.droptechsolution.shared.network.NetworkResult
 import com.droptechsolution.shared.outletinfo.model.api.OutletRequest
 import com.droptechsolution.shared.outletinfo.model.api.staff.NotificationRequest
-import com.droptechsolution.shared.outletinfo.model.api.staff.StaffAPI
 import com.droptechsolution.shared.outletinfo.model.api.staff.StaffDetails
 import com.droptechsolution.shared.outletinfo.model.api.staff.StaffListRequest
 import com.droptechsolution.shared.outletinfo.model.api.staff.StaffLoginRequest
@@ -23,6 +23,8 @@ import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 class HomeViewModel @Inject constructor(private val tokenService: ITokenService) : ViewModel() {
+    private val outletApi = NetworkProvider.outletApi
+    private val staffApi = NetworkProvider.staffApi
 //    private val _loginState = MutableStateFlow(Boolean)
 //    val loginState = _loginState.asStateFlow()
 
@@ -40,8 +42,10 @@ class HomeViewModel @Inject constructor(private val tokenService: ITokenService)
     }
 
     suspend fun loadOutletInfo(username:String, password:String){
-        val info = OutletApi().getOutletInfo(OutletRequest(username,password))
-        Log.v("HomeViewModel", "${info}")
+        when (val result = outletApi.getOutletInfo(OutletRequest(username, password))) {
+            is NetworkResult.Success -> Log.v("HomeViewModel", "${result.data}")
+            is NetworkResult.Error -> Log.e("HomeViewModel", result.error.userMessage)
+        }
     }
 
     fun loadToken(username:String,password:String){
@@ -51,11 +55,24 @@ class HomeViewModel @Inject constructor(private val tokenService: ITokenService)
             Log.v("HomeViewModel", "Token : $pushToken")
 
 //            val info = OutletApi().staffLogin(StaffLoginRequest(outletId = "5", username = "cafe99mgr", password = "cafe99mgr", deviceId = pushToken?:"", deviceType = "android"))
-            val info = OutletApi().staffLogin(StaffLoginRequest(outletId = "5", username = username, password = password, deviceId = pushToken?:"", deviceType = "android", userType = "STAFF"))
-            Log.v("HomeViewModel", "${info}")
-            if(!info.status)
-            {
-                _loginState.postValue(true)
+            val info = outletApi.staffLogin(
+                StaffLoginRequest(
+                    outletId = "5",
+                    username = username,
+                    password = password,
+                    deviceId = pushToken ?: "",
+                    deviceType = "android",
+                    userType = "STAFF",
+                )
+            )
+            when (info) {
+                is NetworkResult.Success -> {
+                    Log.v("HomeViewModel", "${info.data}")
+                    if (info.data.status) {
+                        _loginState.postValue(true)
+                    }
+                }
+                is NetworkResult.Error -> Log.e("HomeViewModel", info.error.userMessage)
             }
 
         }
@@ -64,9 +81,13 @@ class HomeViewModel @Inject constructor(private val tokenService: ITokenService)
 
     fun loadStaffs(){
         viewModelScope.launch {
-            val staff = StaffAPI().staffList(StaffListRequest("5"))
-            Log.v("HomeViewModel",""+staff)
-            _staffs.emit(staff.firstOrNull()?.value ?: emptyList())
+            when (val staff = staffApi.staffList(StaffListRequest("5"))) {
+                is NetworkResult.Success -> {
+                    Log.v("HomeViewModel", "$staff")
+                    _staffs.emit(staff.data.firstOrNull()?.value ?: emptyList())
+                }
+                is NetworkResult.Error -> Log.e("HomeViewModel", staff.error.userMessage)
+            }
         }
     }
 
@@ -78,7 +99,10 @@ class HomeViewModel @Inject constructor(private val tokenService: ITokenService)
         val scope = CoroutineScope(Dispatchers.IO + exceptionHandler)
 
         scope.launch {
-            OutletApi().sendNotification(NotificationRequest(staffId,titleText,messageText))
+            when (val result = outletApi.sendNotification(NotificationRequest(staffId, titleText, messageText))) {
+                is NetworkResult.Success -> Log.v("HomeViewModel", result.data)
+                is NetworkResult.Error -> Log.e("HomeViewModel", result.error.userMessage)
+            }
         }
     }
 

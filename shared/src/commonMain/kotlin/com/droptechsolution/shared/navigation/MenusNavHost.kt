@@ -7,14 +7,11 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.droptechsolution.shared.ui.common.PlaceholderScreen
-import com.droptechsolution.shared.ui.common.user.UserStorage
 import com.droptechsolution.shared.ui.dashboard.DashboardScreen
 import com.droptechsolution.shared.ui.login.LoginScreen
-import com.droptechsolution.shared.ui.login.LoginViewModel
 import com.droptechsolution.shared.ui.login.SecureLoginScreen
 import com.droptechsolution.shared.ui.theme.MenusTheme
 import org.jetbrains.compose.ui.tooling.preview.Preview
-import org.koin.compose.viewmodel.koinViewModel
 
 /**
  * Root navigation host for the single-activity / single-controller pattern.

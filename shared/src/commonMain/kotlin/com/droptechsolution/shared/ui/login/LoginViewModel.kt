@@ -2,21 +2,19 @@ package com.droptechsolution.shared.ui.login
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import androidx.lifecycle.viewmodel.initializer
-import androidx.lifecycle.viewmodel.viewModelFactory
+import com.droptechsolution.shared.network.NetworkResult
 import com.droptechsolution.shared.outletinfo.model.api.OutletApi
 import com.droptechsolution.shared.outletinfo.model.api.staff.StaffLoginRequest
 import com.droptechsolution.shared.platform
-import com.droptechsolution.shared.push.PushTokenProvider
 import com.droptechsolution.shared.ui.common.user.UserStorage
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 
 class LoginViewModel(
-//    private val pushTokenProvider: NoOpPushTokenProvider = NoOpPushTokenProvider,
     private val pushTokenProvider: IPushTokenProvider,
-    private val userStorage: UserStorage
+    private val userStorage: UserStorage,
+    private val outletApi: OutletApi,
 ) : ViewModel() {
 
     private val _loginState = MutableStateFlow(false)
@@ -36,34 +34,35 @@ class LoginViewModel(
         viewModelScope.launch {
             _isLoading.value = true
             _errorMessage.value = ""
-            try {
-                val pushToken = PushTokenProvider().getPushToken()?:""
+            val pushToken = pushTokenProvider.requestToken().orEmpty()
 
-                val response = OutletApi().staffLogin(
+            when (
+                val result = outletApi.staffLogin(
                     StaffLoginRequest(
                         outletId = outletCode,
                         username = username,
                         password = password,
                         deviceId = pushToken,
                         deviceType = platform().lowercase(),
-                        userType = userType
+                        userType = userType,
                     )
                 )
-                val success = response.status
-
-                if (!success) {
-                    _errorMessage.value = "Invalid credentials"
-                } else{
-                    response.value
-                    userStorage.saveStaffUser(response.value)
-                    _loginState.value = success
+            ) {
+                is NetworkResult.Success -> {
+                    val response = result.data
+                    if (!response.status) {
+                        _errorMessage.value = "Invalid credentials"
+                    } else {
+                        userStorage.saveStaffUser(response.value)
+                        _loginState.value = true
+                    }
                 }
 
-            } catch (e: Exception) {
-                _errorMessage.value = e.message ?: "Login failed"
-            } finally {
-                _isLoading.value = false
+                is NetworkResult.Error -> {
+                    _errorMessage.value = result.error.userMessage
+                }
             }
+            _isLoading.value = false
         }
     }
 

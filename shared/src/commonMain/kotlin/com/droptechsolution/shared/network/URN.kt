@@ -9,4 +9,8 @@ object URN {
     val STAFF_LOGIN ="/staffLogin"
     val STAFF_LIST = "/application_service/getStaffList"
     val SEND_NOTIFICATION = "/sendPushNotification"
+
+    //Services
+    val GET_ROOM_REQUESTS = "/getRoomRequest"
+    val GET_OUTLET_SERVICES ="/getOutletServices"
 }

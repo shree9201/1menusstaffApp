@@ -81,9 +81,7 @@ class MainActivity : ComponentActivity(), ILoginClicked {
 
         setContent {
             _1MenusTheme {
-                Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-                    MenusNavHost(modifier = Modifier.padding(innerPadding))
-                }
+                MenusNavHost(modifier = Modifier.fillMaxSize())
             }
         }
     }

@@ -3,31 +3,52 @@ package com.droptechsolution.shared.services.models
 data class RoomRequest(
     val id: String,
     val requestCode: String,
+    val title: String,
+    val roomId: String,
+    val serviceId: String,
+    val assigned: String,
     val note: String,
     val status: String,
     val createdDate: String,
     val updatedDate: String,
     val points: Int,
-    val timeMetrics: TimeMetrics
+    val guestName: String,
+    val timeMetrics: TimeMetrics,
 )
 
 data class TimeMetrics(
-    val totalTimeMinutes: Int,
+    val totalTimeMinutes: Double,
     val totalTimeFormatted: String,
-    val activitiesCount: Int
+    val activitiesCount: Int,
 )
 
+data class OutletService(
+    val id: String,
+    val title: String,
+    val boxId: String,
+    val serviceId: String,
+    val actionBy: String,
+    val priority: String,
+    val points: Int,
+    val information: String,
+    val status: String,
+)
 
 fun RoomRequestDto.toDomain(): RoomRequest {
     return RoomRequest(
         id = id,
         requestCode = reqCode,
-        note = note,
+        title = title.orEmpty(),
+        roomId = roomId,
+        serviceId = serviceId,
+        assigned = assigned,
+        note = note.orEmpty(),
         status = status,
-        createdDate = this.created_date,
-        updatedDate =this.updated_date,
+        createdDate = created_date,
+        updatedDate = updated_date,
         points = points.toIntOrNull() ?: 0,
-        timeMetrics = timeMetrics.toDomain()
+        guestName = guestName.orEmpty(),
+        timeMetrics = timeMetrics.toDomain(),
     )
 }
 
@@ -35,6 +56,26 @@ fun TimeMetricsDto.toDomain(): TimeMetrics {
     return TimeMetrics(
         totalTimeMinutes = totalTimeMinutes,
         totalTimeFormatted = totalTimeFormatted,
-        activitiesCount = activitiesCount
+        activitiesCount = activitiesCount,
     )
 }
+
+fun OutletServiceDto.toDomain(): OutletService {
+    return OutletService(
+        id = id,
+        title = title,
+        boxId = boxId,
+        serviceId = serviceId,
+        actionBy = actionBy,
+        priority = priority,
+        points = points.toIntOrNull() ?: 0,
+        information = information,
+        status = status,
+    )
+}
+
+fun RoomRequestsResponse.toDomainList(): List<RoomRequest> =
+    roomRequest.map { it.toDomain() }
+
+fun OutletServicesResponse.toDomainList(): List<OutletService> =
+    services.map { it.toDomain() }

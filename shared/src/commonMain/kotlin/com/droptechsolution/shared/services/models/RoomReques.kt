@@ -6,7 +6,7 @@ import kotlinx.serialization.Serializable
 data class RoomRequestDto(
     val id: String,
     val reqCode: String,
-    val title: String,
+    val title: String? = null,
     val userId: String,
     val roomId: String,
     val serviceId: String,
@@ -15,9 +15,9 @@ data class RoomRequestDto(
     val end_time: String? = null,
     val date: String,
     val ip: String,
-    val additionalField: String,
+    val additionalField: String? = null,
     val audio: String? = null,
-    val note: String,
+    val note: String? = null,
     val status: String,
     val escalated_by: String? = null,
     val created_date: String,
@@ -27,23 +27,25 @@ data class RoomRequestDto(
     val guestMobile: String? = null,
     val guestCode: String? = null,
     val points: String,
-    val timeMetrics: TimeMetricsDto
+    val timeMetrics: TimeMetricsDto,
 )
 
 @Serializable
 data class TimeMetricsDto(
-    val totalTimeMinutes: Int,
+    val totalTimeMinutes: Double = 0.0,
     val totalTimeFormatted: String,
-    val activitiesCount: Int,
+    val activitiesCount: Int = 0,
     val staffInvolved: List<String> = emptyList(),
     val timeline: List<RoomRequestTimelineDto> = emptyList(),
-    val averageTimePerActivityMinutes: Int
+    val averageTimePerActivityMinutes: Double = 0.0,
 )
 
 @Serializable
 data class RoomRequestTimelineDto(
-    val id: String? = null,
-    val status: String? = null,
-    val staffId: String? = null,
-    val createdDate: String? = null
+    val userId: String? = null,
+    val assignedTo: String? = null,
+    val startTime: String? = null,
+    val endTime: String? = null,
+    val durationMinutes: Double? = null,
+    val durationFormatted: String? = null,
 )

@@ -2,6 +2,7 @@ package com.droptechsolution.shared.network
 
 import com.droptechsolution.shared.outletinfo.model.api.OutletApi
 import com.droptechsolution.shared.outletinfo.model.api.staff.StaffAPI
+import com.droptechsolution.shared.services.services.ServicesAPI
 
 /**
  * Shared entry point for service APIs. Use this from platform modules (e.g. app)
@@ -12,4 +13,5 @@ object NetworkProvider {
 
     val outletApi: OutletApi by lazy { OutletApi(networkClient) }
     val staffApi: StaffAPI by lazy { StaffAPI(networkClient) }
+    val servicesApi: ServicesAPI by lazy { ServicesAPI(networkClient) }
 }

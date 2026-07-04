@@ -13,14 +13,17 @@ import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -30,6 +33,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.droptechsolution.shared.services.views.ActiveTasksSection
 import com.droptechsolution.shared.ui.home.presenter.HomeViewModel
 import com.droptechsolution.shared.ui.theme.BG_LIGHT
 import com.droptechsolution.shared.ui.theme.MenusGradients
@@ -44,10 +48,13 @@ fun HomeScreen(
 ) {
     viewModel.checkUserInfo()
     val userInfo = viewModel.loginState.collectAsState()
+    val activeTasks by viewModel.activeTasks.collectAsState()
+
     Column(
         modifier = modifier
             .fillMaxSize()
             .background(BG_LIGHT)
+            .verticalScroll(rememberScrollState())
             .padding(24.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
@@ -57,19 +64,14 @@ fun HomeScreen(
             status = userInfo.value.status,
             initials = userInfo.value.initials.ifBlank { userInfo.value.userName.take(2).uppercase() },
         )
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .clip(RoundedCornerShape(24.dp))
-                .background(MenusGradients.contentPanel)
-                .padding(24.dp),
-            horizontalAlignment = Alignment.CenterHorizontally,
-        ) {
 
+        Spacer(modifier = Modifier.height(24.dp))
 
-            Spacer(modifier = Modifier.height(12.dp))
-
-        }
+        ActiveTasksSection(
+            tasks = activeTasks,
+            onViewAllClick = { /* TODO: navigate to full tasks list */ },
+            onTaskActionClick = { /* TODO: accept / start task */ },
+        )
     }
 }
 

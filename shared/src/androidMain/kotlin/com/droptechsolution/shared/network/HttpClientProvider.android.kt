@@ -3,6 +3,7 @@ package com.droptechsolution.shared.network
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.okhttp.OkHttp
 import io.ktor.client.plugins.api.createClientPlugin
+import io.ktor.client.statement.request
 import java.security.cert.X509Certificate
 import javax.net.ssl.SSLContext
 import javax.net.ssl.TrustManager
@@ -18,10 +19,12 @@ val CustomInterceptorPlugin = createClientPlugin("CustomInterceptorPlugin") {
         request.headers.append("Token", "Qk7NwXbP4mLrYgZ8HsDc2VeT9uAjFi3KoEpMn5RxCt")
         request.headers.append("Id", "2")
         println("Intercepted Request: ${request.method.value} ${request.url.buildString()}")
+        println("Request : ${request.body}")
     }
 
     // Intercept the response stage
     onResponse { response ->
+        println("Response received for: ${response.request.url}")
         println("Intercepted Response Status: ${response.status}")
     }
 }

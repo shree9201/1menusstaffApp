@@ -11,6 +11,6 @@ object URN {
     val SEND_NOTIFICATION = "/sendPushNotification"
 
     //Services
-    val GET_ROOM_REQUESTS = "/getRoomRequest"
-    val GET_OUTLET_SERVICES ="/getOutletServices"
+    val GET_ROOM_REQUESTS = "getRoomRequest"
+    val GET_OUTLET_SERVICES ="getOutletServices"
 }

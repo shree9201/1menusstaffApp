@@ -34,6 +34,7 @@ data class OutletService(
     val points: Int,
     val information: String,
     val status: String,
+    val escalationTime: String = "",
 )
 
 data class RequestDetails(
@@ -93,6 +94,7 @@ fun OutletServiceDto.toDomain(): OutletService {
         points = points.toIntOrNull() ?: 0,
         information = information,
         status = status,
+        escalationTime = escalationTime,
     )
 }
 

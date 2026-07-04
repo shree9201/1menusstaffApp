@@ -1,5 +1,6 @@
 package com.droptechsolution.shared.network
 
+import android.util.Log
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.okhttp.OkHttp
 import io.ktor.client.plugins.api.createClientPlugin
@@ -9,23 +10,35 @@ import javax.net.ssl.SSLContext
 import javax.net.ssl.TrustManager
 import javax.net.ssl.X509TrustManager
 
-
+private const val INTERCEPTOR_TAG = "CustomInterceptor"
 
 val CustomInterceptorPlugin = createClientPlugin("CustomInterceptorPlugin") {
 
-    // Intercept the request stage
     onRequest { request, _ ->
-        // Example: Add a dynamic header globally
         request.headers.append("Token", "Qk7NwXbP4mLrYgZ8HsDc2VeT9uAjFi3KoEpMn5RxCt")
         request.headers.append("Id", "2")
-        println("Intercepted Request: ${request.method.value} ${request.url.buildString()}")
-        println("Request : ${request.body}")
+        Log.d(
+            INTERCEPTOR_TAG,
+            "Request: ${request.method.value} ${request.url.buildString()}",
+        )
     }
 
-    // Intercept the response stage
+    // Log status only — do not read the body here or ContentNegotiation cannot deserialize.
     onResponse { response ->
-        println("Response received for: ${response.request.url}")
-        println("Intercepted Response Status: ${response.status}")
+        Log.d(INTERCEPTOR_TAG, "Response received for: ${response.request.url}")
+        Log.d(INTERCEPTOR_TAG, "Response status: ${response.status}")
+    }
+}
+
+private fun okhttp3.OkHttpClient.Builder.installResponseBodyLogging() {
+    addInterceptor { chain ->
+        val response = chain.proceed(chain.request())
+        val responseBody = response.body
+        if (responseBody != null) {
+            val bodyText = response.peekBody(Long.MAX_VALUE).string()
+            Log.d(INTERCEPTOR_TAG, "Response body: $bodyText")
+        }
+        response
     }
 }
 
@@ -37,6 +50,8 @@ actual object HttpClientProvider {
 
         engine {
             config {
+                installResponseBodyLogging()
+
                 val trustAllCerts = arrayOf<TrustManager>(
                     object : X509TrustManager {
                         override fun checkClientTrusted(

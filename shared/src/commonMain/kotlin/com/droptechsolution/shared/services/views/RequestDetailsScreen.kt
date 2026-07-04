@@ -1,7 +1,8 @@
 package com.droptechsolution.shared.services.views
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -19,9 +20,14 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material.icons.automirrored.filled.Reply
+import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.KeyboardArrowUp
+import androidx.compose.material.icons.filled.Pause
+import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
@@ -29,23 +35,40 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.droptechsolution.shared.services.models.RequestActivityUi
+import com.droptechsolution.shared.services.models.RequestAction
 import com.droptechsolution.shared.services.models.RequestDetailsUi
 import com.droptechsolution.shared.services.models.RequestSource
-import com.droptechsolution.shared.services.models.TaskActionType
+import com.droptechsolution.shared.services.models.RequestStatusDisplay
+import com.droptechsolution.shared.services.models.TimelineStepUi
 import com.droptechsolution.shared.ui.tasks.presenter.RequestDetailsViewModel
 import com.droptechsolution.shared.ui.theme.BG_LIGHT
 import com.droptechsolution.shared.ui.theme.BLACK
+import com.droptechsolution.shared.ui.theme.MenusPrimary
 import com.droptechsolution.shared.ui.theme.MenusTeal
 import com.droptechsolution.shared.ui.theme.TextMuted
+import kotlinx.coroutines.launch
 import org.koin.compose.viewmodel.koinViewModel
+
+private val CardShape = RoundedCornerShape(20.dp)
+private val ActionGreen = Color(0xFF22C55E)
+private val ActionBlue = Color(0xFF2563EB)
+private val ActionBlueBg = Color(0xFFEFF6FF)
+private val ActionPauseBg = Color(0xFFFFF4E8)
+private val ActionPauseBorder = Color(0xFFF59E0B)
+private val ActionRejectBg = Color(0xFFFFEBEE)
+private val ActionRejectText = Color(0xFFE53935)
+private val TimelineBlue = Color(0xFF2563EB)
+private val TimelineLine = Color(0xFFDCE7F6)
+private val DurationGreen = Color(0xFF16A34A)
 
 @Composable
 fun RequestDetailsScreen(
@@ -61,306 +84,487 @@ fun RequestDetailsScreen(
 
     val details by viewModel.details.collectAsState()
     val isLoading by viewModel.isLoading.collectAsState()
+    val isUpdating by viewModel.isUpdating.collectAsState()
     val errorMessage by viewModel.errorMessage.collectAsState()
+    val scrollState = rememberScrollState()
+    val scope = rememberCoroutineScope()
 
-    Column(
+    Box(
         modifier = modifier
             .fillMaxSize()
             .background(BG_LIGHT),
     ) {
-        RequestDetailsTopBar(
-            title = details?.title ?: "Request Details",
-            onBack = onBack,
-        )
-
         when {
             isLoading -> {
-                Box(
-                    modifier = Modifier.fillMaxSize(),
-                    contentAlignment = Alignment.Center,
-                ) {
+                Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                     CircularProgressIndicator(color = MenusTeal)
                 }
             }
-            errorMessage != null -> {
+            errorMessage != null && details == null -> {
                 Box(
-                    modifier = Modifier
+                    Modifier
                         .fillMaxSize()
                         .padding(24.dp),
                     contentAlignment = Alignment.Center,
                 ) {
-                    Text(
-                        text = errorMessage.orEmpty(),
-                        color = TextMuted,
-                        fontSize = 16.sp,
-                    )
+                    Text(text = errorMessage.orEmpty(), color = TextMuted, fontSize = 16.sp)
                 }
             }
             details != null -> {
-                RequestDetailsContent(
-                    details = details!!,
-                    modifier = Modifier.fillMaxSize(),
-                )
+                Column(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .verticalScroll(scrollState)
+                        .padding(horizontal = 20.dp, vertical = 16.dp),
+                ) {
+                    Spacer(modifier = Modifier.height(36.dp))
+                    TaskSummaryCard(details = details!!)
+                    Spacer(modifier = Modifier.height(14.dp))
+                    DepartmentDurationCard(details = details!!)
+                    if (details!!.timelineSteps.isNotEmpty()) {
+                        Spacer(modifier = Modifier.height(14.dp))
+                        RequestTimelineCard(steps = details!!.timelineSteps)
+                    }
+                    if (details!!.availableActions.isNotEmpty()) {
+                        Spacer(modifier = Modifier.height(20.dp))
+                        TaskActionsSection(
+                            actions = details!!.availableActions,
+                            isUpdating = isUpdating,
+                            onAction = viewModel::performAction,
+                        )
+                    }
+                    Spacer(modifier = Modifier.height(88.dp))
+                }
             }
         }
-    }
-}
 
-@Composable
-private fun RequestDetailsTopBar(
-    title: String,
-    onBack: () -> Unit,
-    modifier: Modifier = Modifier,
-) {
-    Row(
-        modifier = modifier
-            .fillMaxWidth()
-            .background(Color.White)
-            .padding(horizontal = 8.dp, vertical = 12.dp),
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        IconButton(onClick = onBack) {
+        IconButton(
+            onClick = onBack,
+            modifier = Modifier
+                .padding(start = 8.dp, top = 8.dp)
+                .align(Alignment.TopStart),
+        ) {
             Icon(
                 imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                 contentDescription = "Back",
                 tint = BLACK,
             )
         }
-        Column(modifier = Modifier.weight(1f)) {
-            Text(
-                text = title,
-                color = BLACK,
-                fontSize = 20.sp,
-                fontWeight = FontWeight.Bold,
-                maxLines = 1,
-            )
-        }
-    }
-}
 
-@Composable
-private fun RequestDetailsContent(
-    details: RequestDetailsUi,
-    modifier: Modifier = Modifier,
-) {
-    Column(
-        modifier = modifier
-            .verticalScroll(rememberScrollState())
-            .padding(24.dp),
-    ) {
-        RequestSummaryCard(details = details)
-
-        Spacer(modifier = Modifier.height(20.dp))
-
-        RequestInfoSection(details = details)
-
-        if (details.activities.isNotEmpty()) {
-            Spacer(modifier = Modifier.height(24.dp))
-            Text(
-                text = "Activity Timeline",
-                color = BLACK,
-                fontSize = 20.sp,
-                fontWeight = FontWeight.Bold,
-            )
-            Spacer(modifier = Modifier.height(12.dp))
-            details.activities.forEach { activity ->
-                ActivityTimelineItem(activity = activity)
-                Spacer(modifier = Modifier.height(10.dp))
-            }
-        }
-
-        if (details.action != TaskActionType.NONE) {
-            Spacer(modifier = Modifier.height(24.dp))
-            Button(
-                onClick = { /* TODO: update request status */ },
-                modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(14.dp),
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = if (details.action == TaskActionType.ACCEPT) MenusTeal else Color(0xFF22C55E),
-                ),
+        if (details != null) {
+            FloatingActionButton(
+                onClick = { scope.launch { scrollState.animateScrollTo(0) } },
+                modifier = Modifier
+                    .align(Alignment.BottomEnd)
+                    .padding(end = 20.dp, bottom = 20.dp),
+                containerColor = MenusTeal,
+                contentColor = Color.White,
+                shape = CircleShape,
             ) {
-                Text(
-                    text = if (details.action == TaskActionType.ACCEPT) "ACCEPT" else "START",
-                    fontWeight = FontWeight.Bold,
-                    modifier = Modifier.padding(vertical = 4.dp),
-                )
+                Icon(Icons.Default.KeyboardArrowUp, contentDescription = "Scroll to top")
             }
         }
     }
 }
 
 @Composable
-private fun RequestSummaryCard(details: RequestDetailsUi) {
+private fun TaskSummaryCard(details: RequestDetailsUi) {
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .clip(RoundedCornerShape(18.dp))
+            .clip(CardShape)
             .background(Color.White)
             .padding(20.dp),
     ) {
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            Text(
-                text = details.requestCode,
-                color = TextMuted,
-                fontSize = 14.sp,
-                fontWeight = FontWeight.Medium,
-            )
-            StatusChip(label = details.statusLabel)
-        }
-
-        Spacer(modifier = Modifier.height(12.dp))
-
         Text(
             text = "Room ${details.roomNumber}",
             color = BLACK,
-            fontSize = 28.sp,
+            fontSize = 32.sp,
             fontWeight = FontWeight.Bold,
         )
-
-        if (details.title.isNotBlank()) {
-            Spacer(modifier = Modifier.height(6.dp))
-            Text(
-                text = details.title,
-                color = BLACK,
-                fontSize = 18.sp,
-                fontWeight = FontWeight.SemiBold,
-            )
-        }
+        Spacer(modifier = Modifier.height(4.dp))
+        Text(
+            text = details.title,
+            color = BLACK,
+            fontSize = 22.sp,
+            fontWeight = FontWeight.Bold,
+        )
+        Spacer(modifier = Modifier.height(10.dp))
+        Text(
+            text = "${details.guestLabel} · ${details.priorityLabel}",
+            color = TextMuted,
+            fontSize = 15.sp,
+        )
+        Spacer(modifier = Modifier.height(4.dp))
+        Text(
+            text = details.requestedMeta,
+            color = TextMuted,
+            fontSize = 15.sp,
+        )
+        Spacer(modifier = Modifier.height(14.dp))
+        TaskStatusPill(status = details.statusDisplay)
     }
 }
 
 @Composable
-private fun RequestInfoSection(details: RequestDetailsUi) {
+private fun TaskStatusPill(status: RequestStatusDisplay) {
+    val (background, textColor, label) = status.toPillStyle()
+    Box(
+        modifier = Modifier
+            .clip(RoundedCornerShape(10.dp))
+            .background(background)
+            .padding(horizontal = 14.dp, vertical = 6.dp),
+    ) {
+        Text(
+            text = label,
+            color = textColor,
+            fontSize = 14.sp,
+            fontWeight = FontWeight.SemiBold,
+        )
+    }
+}
+
+private fun RequestStatusDisplay.toPillStyle(): Triple<Color, Color, String> = when (this) {
+    RequestStatusDisplay.NEW -> Triple(Color(0xFFFFF7E6), Color(0xFFD97706), "New")
+    RequestStatusDisplay.ACCEPTED -> Triple(Color(0xFFE6F7F1), MenusTeal, "Accepted")
+    RequestStatusDisplay.IN_PROGRESS -> Triple(Color(0xFFE8F1FF), MenusPrimary, "In Progress")
+    RequestStatusDisplay.ON_HOLD -> Triple(Color(0xFFFFF4E8), ActionPauseBorder, "On Hold")
+    RequestStatusDisplay.COMPLETED -> Triple(Color(0xFFFFE8E8), ActionRejectText, "Completed")
+    RequestStatusDisplay.REJECTED -> Triple(Color(0xFFFFE8E8), ActionRejectText, "Rejected")
+    RequestStatusDisplay.ESCALATED -> Triple(Color(0xFFFFE8E8), Color(0xFFDC2626), "Escalated")
+    RequestStatusDisplay.UNKNOWN -> Triple(Color(0xFFF3F4F6), TextMuted, "Unknown")
+}
+
+@Composable
+private fun DepartmentDurationCard(details: RequestDetailsUi) {
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .clip(RoundedCornerShape(18.dp))
+            .clip(CardShape)
             .background(Color.White)
-            .padding(20.dp),
-        verticalArrangement = Arrangement.spacedBy(14.dp),
+            .padding(horizontal = 20.dp, vertical = 18.dp),
     ) {
-        Text(
-            text = "Details",
-            color = BLACK,
-            fontSize = 18.sp,
-            fontWeight = FontWeight.Bold,
+        InfoSplitRow(label = "Department", value = details.department)
+        Spacer(modifier = Modifier.height(14.dp))
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(1.dp)
+                .background(Color(0xFFE5E7EB)),
         )
-
-        if (details.note.isNotBlank()) {
-            DetailRow(label = "Note", value = details.note)
-        }
-        if (details.guestName.isNotBlank()) {
-            DetailRow(label = "Guest", value = details.guestName)
-        }
-        DetailRow(label = "Points", value = details.points.toString())
-        DetailRow(label = "Created", value = details.createdDate)
-        DetailRow(label = "Updated", value = details.updatedDate)
-        if (details.startTime.isNotBlank()) {
-            DetailRow(label = "Started", value = details.startTime)
-        }
-        if (details.endTime.isNotBlank()) {
-            DetailRow(label = "Ended", value = details.endTime)
-        }
+        Spacer(modifier = Modifier.height(14.dp))
+        InfoSplitRow(label = "Est. duration", value = details.estimatedDuration)
     }
 }
 
 @Composable
-private fun DetailRow(
-    label: String,
-    value: String,
-) {
-    Row(modifier = Modifier.fillMaxWidth()) {
-        Text(
-            text = label,
-            color = TextMuted,
-            fontSize = 14.sp,
-            modifier = Modifier.width(88.dp),
-        )
+private fun InfoSplitRow(label: String, value: String) {
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Text(text = label, color = TextMuted, fontSize = 16.sp)
         Text(
             text = value,
             color = BLACK,
-            fontSize = 14.sp,
-            fontWeight = FontWeight.Medium,
-            modifier = Modifier.weight(1f),
-        )
-    }
-}
-
-@Composable
-private fun StatusChip(label: String) {
-    Box(
-        modifier = Modifier
-            .clip(RoundedCornerShape(8.dp))
-            .background(MenusTeal.copy(alpha = 0.12f))
-            .padding(horizontal = 10.dp, vertical = 4.dp),
-    ) {
-        Text(
-            text = label.uppercase(),
-            color = MenusTeal,
-            fontSize = 11.sp,
+            fontSize = 16.sp,
             fontWeight = FontWeight.Bold,
         )
     }
 }
 
 @Composable
-private fun ActivityTimelineItem(activity: RequestActivityUi) {
-    Row(
+private fun RequestTimelineCard(steps: List<TimelineStepUi>) {
+    Column(
         modifier = Modifier
             .fillMaxWidth()
-            .clip(RoundedCornerShape(16.dp))
+            .clip(CardShape)
             .background(Color.White)
-            .padding(16.dp),
+            .padding(20.dp),
     ) {
-        Box(
-            modifier = Modifier
-                .size(10.dp)
-                .clip(CircleShape)
-                .background(MenusTeal)
-                .align(Alignment.Top),
+        Text(
+            text = "Request Timeline",
+            color = BLACK,
+            fontSize = 22.sp,
+            fontWeight = FontWeight.Bold,
         )
-        Spacer(modifier = Modifier.width(12.dp))
-        Column(modifier = Modifier.weight(1f)) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-            ) {
-                Text(
-                    text = activity.status,
-                    color = BLACK,
-                    fontSize = 14.sp,
-                    fontWeight = FontWeight.Bold,
-                )
-                Text(
-                    text = activity.dateTime.toDisplayTime(),
-                    color = TextMuted,
-                    fontSize = 12.sp,
+        Spacer(modifier = Modifier.height(18.dp))
+        steps.forEachIndexed { index, step ->
+            TimelineStepRow(
+                step = step,
+                showConnector = index < steps.lastIndex,
+            )
+        }
+    }
+}
+
+@Composable
+private fun TimelineStepRow(
+    step: TimelineStepUi,
+    showConnector: Boolean,
+) {
+    Row(modifier = Modifier.fillMaxWidth()) {
+        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+            TimelineStepIndicator(
+                isCompleted = step.isCompleted,
+                isCurrent = step.isCurrent,
+            )
+            if (showConnector) {
+                Box(
+                    modifier = Modifier
+                        .width(2.dp)
+                        .height(52.dp)
+                        .background(TimelineLine),
                 )
             }
+        }
+        Spacer(modifier = Modifier.width(14.dp))
+        Column(modifier = Modifier.weight(1f)) {
+            Text(
+                text = "${step.headline} — ${step.description}",
+                color = BLACK,
+                fontSize = 16.sp,
+                fontWeight = FontWeight.Bold,
+            )
             Spacer(modifier = Modifier.height(4.dp))
             Text(
-                text = activity.comment,
+                text = step.timeLabel,
                 color = TextMuted,
-                fontSize = 13.sp,
+                fontSize = 14.sp,
             )
-            if (activity.assignedTo.isNotBlank()) {
-                Spacer(modifier = Modifier.height(4.dp))
+            step.durationFromPrevious?.let { duration ->
+                Spacer(modifier = Modifier.height(2.dp))
                 Text(
-                    text = "Assigned to ${activity.assignedTo}",
-                    color = MenusTeal,
-                    fontSize = 12.sp,
+                    text = duration,
+                    color = DurationGreen,
+                    fontSize = 13.sp,
                     fontWeight = FontWeight.Medium,
+                )
+            }
+            if (showConnector) Spacer(modifier = Modifier.height(18.dp))
+        }
+    }
+}
+
+@Composable
+private fun TimelineStepIndicator(
+    isCompleted: Boolean,
+    isCurrent: Boolean,
+) {
+    if (isCurrent && !isCompleted) {
+        Box(
+            modifier = Modifier
+                .size(28.dp)
+                .border(2.dp, TimelineBlue, CircleShape),
+            contentAlignment = Alignment.Center,
+        ) {
+            Box(
+                modifier = Modifier
+                    .size(10.dp)
+                    .clip(CircleShape)
+                    .background(TimelineBlue),
+            )
+        }
+    } else {
+        Box(
+            modifier = Modifier
+                .size(28.dp)
+                .clip(CircleShape)
+                .background(TimelineBlue),
+            contentAlignment = Alignment.Center,
+        ) {
+            Icon(
+                imageVector = Icons.Default.Check,
+                contentDescription = null,
+                tint = Color.White,
+                modifier = Modifier.size(16.dp),
+            )
+        }
+    }
+}
+
+@Composable
+private fun TaskActionsSection(
+    actions: List<RequestAction>,
+    isUpdating: Boolean,
+    onAction: (RequestAction) -> Unit,
+) {
+    Column(modifier = Modifier.fillMaxWidth()) {
+        Text(
+            text = "Choose action",
+            color = BLACK,
+            fontSize = 22.sp,
+            fontWeight = FontWeight.Bold,
+        )
+        Spacer(modifier = Modifier.height(14.dp))
+
+        if (isUpdating) {
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 12.dp),
+                contentAlignment = Alignment.Center,
+            ) {
+                CircularProgressIndicator(color = MenusTeal, modifier = Modifier.size(28.dp))
+            }
+        }
+
+        actions.filter { it == RequestAction.ACCEPT || it == RequestAction.START }.forEach { action ->
+            PrimaryActionButton(action = action, enabled = !isUpdating, onClick = { onAction(action) })
+            Spacer(modifier = Modifier.height(10.dp))
+        }
+
+        val secondary = actions.filter { it == RequestAction.PASS || it == RequestAction.PAUSE }
+        if (secondary.isNotEmpty()) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(10.dp),
+            ) {
+                secondary.forEach { action ->
+                    SecondaryActionButton(
+                        action = action,
+                        enabled = !isUpdating,
+                        onClick = { onAction(action) },
+                        modifier = Modifier.weight(1f),
+                    )
+                }
+            }
+            Spacer(modifier = Modifier.height(10.dp))
+        }
+
+        if (RequestAction.REJECT in actions) {
+            RejectActionButton(
+                enabled = !isUpdating,
+                onClick = { onAction(RequestAction.REJECT) },
+            )
+        }
+
+        Spacer(modifier = Modifier.height(16.dp))
+        Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
+            Box(
+                modifier = Modifier
+                    .clip(RoundedCornerShape(999.dp))
+                    .background(ActionBlueBg)
+                    .padding(horizontal = 16.dp, vertical = 6.dp),
+            ) {
+                Text(
+                    text = "STAFF SCREEN",
+                    color = ActionBlue,
+                    fontSize = 12.sp,
+                    fontWeight = FontWeight.Bold,
                 )
             }
         }
     }
 }
 
-private fun String.toDisplayTime(): String {
-    val timePart = substringAfter(" ", "")
-    return if (timePart.length >= 5) timePart.take(5) else this
+@Composable
+private fun PrimaryActionButton(
+    action: RequestAction,
+    enabled: Boolean,
+    onClick: () -> Unit,
+) {
+    val (label, icon) = when (action) {
+        RequestAction.ACCEPT -> "Accept Request" to Icons.Default.Check
+        RequestAction.START -> "Start Service" to Icons.Default.PlayArrow
+        else -> return
+    }
+    ActionButton(
+        label = label,
+        icon = icon,
+        background = ActionGreen,
+        contentColor = Color.White,
+        borderColor = ActionGreen,
+        enabled = enabled,
+        onClick = onClick,
+    )
+}
+
+@Composable
+private fun SecondaryActionButton(
+    action: RequestAction,
+    enabled: Boolean,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    val (label, icon, bg, border, text) = when (action) {
+        RequestAction.PASS -> Quintuple(
+            "Pass Request",
+            Icons.AutoMirrored.Filled.Reply,
+            ActionBlueBg,
+            ActionBlue,
+            ActionBlue,
+        )
+        RequestAction.PAUSE -> Quintuple(
+            "Pause Request",
+            Icons.Default.Pause,
+            ActionPauseBg,
+            ActionPauseBorder,
+            ActionPauseBorder,
+        )
+        else -> return
+    }
+    ActionButton(
+        label = label,
+        icon = icon,
+        background = bg,
+        contentColor = text,
+        borderColor = border,
+        enabled = enabled,
+        onClick = onClick,
+        modifier = modifier,
+    )
+}
+
+@Composable
+private fun RejectActionButton(
+    enabled: Boolean,
+    onClick: () -> Unit,
+) {
+    ActionButton(
+        label = "Reject Request",
+        icon = Icons.Default.Close,
+        background = ActionRejectBg,
+        contentColor = ActionRejectText,
+        borderColor = ActionRejectText.copy(alpha = 0.35f),
+        enabled = enabled,
+        onClick = onClick,
+    )
+}
+
+private data class Quintuple(
+    val label: String,
+    val icon: ImageVector,
+    val bg: Color,
+    val border: Color,
+    val text: Color,
+)
+
+@Composable
+private fun ActionButton(
+    label: String,
+    icon: ImageVector,
+    background: Color,
+    contentColor: Color,
+    borderColor: Color,
+    enabled: Boolean,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    Row(
+        modifier = modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(16.dp))
+            .background(background)
+            .border(1.dp, borderColor, RoundedCornerShape(16.dp))
+            .clickable(enabled = enabled, onClick = onClick)
+            .padding(horizontal = 18.dp, vertical = 16.dp),
+        horizontalArrangement = Arrangement.Center,
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Icon(imageVector = icon, contentDescription = null, tint = contentColor, modifier = Modifier.size(20.dp))
+        Spacer(modifier = Modifier.width(8.dp))
+        Text(text = label, color = contentColor, fontSize = 16.sp, fontWeight = FontWeight.Bold)
+    }
 }

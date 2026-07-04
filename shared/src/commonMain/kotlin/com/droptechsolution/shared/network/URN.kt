@@ -14,4 +14,5 @@ object URN {
     val GET_ROOM_REQUESTS = "getRoomRequest"
     val GET_OUTLET_SERVICES ="getOutletServices"
     val GET_REQUEST_DETAILS = "getRequestDetails"
+    val UPDATE_REQUEST = "updateRequest"
 }

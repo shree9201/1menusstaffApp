@@ -2,6 +2,7 @@ package com.droptechsolution.shared.ui.dashboard
 
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Assignment
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Settings
@@ -17,6 +18,7 @@ enum class DashboardTab(
     val label: String,
 ) {
     Home("Home"),
+    Tasks("Tasks"),
     Profile("Profile"),
     Settings("Settings"),
 }
@@ -29,7 +31,6 @@ fun DashboardBottomBar(
     NavigationBar(
         containerColor = Color.White,
         tonalElevation = 0.dp,
-        // Avoid stacking system-bar insets on top of an outer Scaffold padding.
         windowInsets = WindowInsets(0, 0, 0, 0),
     ) {
         NavigationBarItem(
@@ -39,6 +40,17 @@ fun DashboardBottomBar(
                 Icon(
                     Icons.Default.Home,
                     contentDescription = DashboardTab.Home.label,
+                )
+            },
+        )
+        NavigationBarItem(
+            selected = selectedTab == DashboardTab.Tasks,
+            onClick = { onTabSelected(DashboardTab.Tasks) },
+            icon = {
+                Icon(
+                    Icons.Default.Assignment,
+                    contentDescription = DashboardTab.Tasks.label,
+                    tint = if (selectedTab == DashboardTab.Tasks) MenusPrimary else Color.Unspecified,
                 )
             },
         )

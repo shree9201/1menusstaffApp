@@ -27,13 +27,13 @@ data class RoomRequestDto(
     val guestMobile: String? = null,
     val guestCode: String? = null,
     val points: String,
-    val timeMetrics: TimeMetricsDto,
+    val timeMetrics: TimeMetricsDto? = null,
 )
 
 @Serializable
 data class TimeMetricsDto(
     val totalTimeMinutes: Double = 0.0,
-    val totalTimeFormatted: String,
+    val totalTimeFormatted: String = "",
     val activitiesCount: Int = 0,
     val staffInvolved: List<String> = emptyList(),
     val timeline: List<RoomRequestTimelineDto> = emptyList(),

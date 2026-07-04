@@ -1,5 +1,10 @@
 package com.droptechsolution.shared.services.models
 
+enum class RequestSource {
+    ROOM,
+    OUTLET,
+}
+
 enum class TaskPriority {
     HIGH,
     MEDIUM,
@@ -19,6 +24,7 @@ data class ServiceRequestRowUi(
     val subtitle: String,
     val priority: TaskPriority,
     val action: TaskActionType,
+    val source: RequestSource = RequestSource.ROOM,
 )
 
 fun RoomRequest.toRowUi(priority: TaskPriority = TaskPriority.MEDIUM): ServiceRequestRowUi {
@@ -29,7 +35,25 @@ fun RoomRequest.toRowUi(priority: TaskPriority = TaskPriority.MEDIUM): ServiceRe
         subtitle = status.toTaskSubtitle(createdDate),
         priority = priority,
         action = status.toTaskAction(),
+        source = RequestSource.ROOM,
     )
+}
+
+fun OutletService.toRowUi(): ServiceRequestRowUi =
+    ServiceRequestRowUi(
+        id = id,
+        roomNumber = "Box $boxId",
+        title = title,
+        subtitle = information.ifBlank { actionBy }.ifBlank { "Outlet service" },
+        priority = priority.toTaskPriority(),
+        action = TaskActionType.NONE,
+        source = RequestSource.OUTLET,
+    )
+
+fun String.toTaskPriority(): TaskPriority = when (lowercase()) {
+    "high" -> TaskPriority.HIGH
+    "low" -> TaskPriority.LOW
+    else -> TaskPriority.MEDIUM
 }
 
 fun RoomRequest.displayTitle(): String =
@@ -38,13 +62,13 @@ fun RoomRequest.displayTitle(): String =
 
 fun String.toTaskAction(): TaskActionType = when (uppercase()) {
     "NEW" -> TaskActionType.ACCEPT
-    "ACCEPT" -> TaskActionType.START
+    "ACCEPT", "ACCEPTED" -> TaskActionType.START
     else -> TaskActionType.NONE
 }
 
 fun String.toTaskSubtitle(createdDate: String): String = when (uppercase()) {
-    "ACCEPT" -> "Accepted · Ready to start"
-    "START" -> "In progress"
+    "ACCEPT", "ACCEPTED" -> "Accepted · Ready to start"
+    "START", "STARTED" -> "In progress"
     else -> createdDate.toDisplayTime()
 }
 
@@ -53,7 +77,38 @@ fun String.toDisplayTime(): String {
     return if (timePart.length >= 5) timePart.take(5) else this
 }
 
-fun RoomRequest.isActiveTask(): Boolean = status.uppercase() != "CLOSE"
+fun RoomRequest.isActiveTask(): Boolean = status.uppercase() !in setOf("CLOSE", "CLOSED")
 
-fun List<RoomRequest>.toActiveTaskRows(): List<ServiceRequestRowUi> =
-    filter { it.isActiveTask() }.map { it.toRowUi() }
+fun List<RoomRequest>.toActiveTaskRows(
+    outletServices: List<OutletService> = emptyList(),
+): List<ServiceRequestRowUi> {
+    val priorityByServiceId = outletServices.associateBy({ it.serviceId }, { it.priority.toTaskPriority() })
+    return filter { it.isActiveTask() }
+        .map { it.toRowUi(priorityByServiceId[it.serviceId] ?: TaskPriority.MEDIUM) }
+}
+
+fun List<RoomRequest>.toTaskRows(
+    outletServices: List<OutletService> = emptyList(),
+): List<ServiceRequestRowUi> {
+    val priorityByServiceId = outletServices.associateBy({ it.serviceId }, { it.priority.toTaskPriority() })
+    return map { it.toRowUi(priorityByServiceId[it.serviceId] ?: TaskPriority.MEDIUM) }
+}
+
+fun mergeTaskRows(
+    roomRequests: List<RoomRequest>,
+    outletServices: List<OutletService>,
+    includeOutletServices: Boolean = true,
+    activeOnly: Boolean = false,
+): List<ServiceRequestRowUi> {
+    val roomRows = if (activeOnly) {
+        roomRequests.toActiveTaskRows(outletServices)
+    } else {
+        roomRequests.toTaskRows(outletServices)
+    }
+    val outletRows = if (includeOutletServices) {
+        outletServices.map { it.toRowUi() }
+    } else {
+        emptyList()
+    }
+    return roomRows + outletRows
+}

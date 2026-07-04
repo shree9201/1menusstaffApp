@@ -13,6 +13,8 @@ data class RoomRequest(
     val updatedDate: String,
     val points: Int,
     val guestName: String,
+    val startTime: String = "",
+    val endTime: String = "",
     val timeMetrics: TimeMetrics,
 )
 
@@ -34,6 +36,20 @@ data class OutletService(
     val status: String,
 )
 
+data class RequestDetails(
+    val request: RoomRequest,
+    val activities: List<RequestActivity>,
+)
+
+data class RequestActivity(
+    val dateTime: String,
+    val status: String,
+    val comment: String,
+    val createdDate: String,
+    val assignedTo: String,
+    val assignedMobile: String,
+)
+
 fun RoomRequestDto.toDomain(): RoomRequest {
     return RoomRequest(
         id = id,
@@ -48,7 +64,13 @@ fun RoomRequestDto.toDomain(): RoomRequest {
         updatedDate = updated_date,
         points = points.toIntOrNull() ?: 0,
         guestName = guestName.orEmpty(),
-        timeMetrics = timeMetrics.toDomain(),
+        startTime = start_time.orEmpty(),
+        endTime = end_time.orEmpty(),
+        timeMetrics = timeMetrics?.toDomain() ?: TimeMetrics(
+            totalTimeMinutes = 0.0,
+            totalTimeFormatted = "",
+            activitiesCount = 0,
+        ),
     )
 }
 

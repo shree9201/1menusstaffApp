@@ -33,6 +33,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.droptechsolution.shared.services.models.ServiceRequestRowUi
 import com.droptechsolution.shared.services.views.ActiveTasksSection
 import com.droptechsolution.shared.ui.home.presenter.HomeViewModel
 import com.droptechsolution.shared.ui.theme.BG_LIGHT
@@ -44,11 +45,14 @@ import org.koin.compose.viewmodel.koinViewModel
 @Composable
 fun HomeScreen(
     modifier: Modifier = Modifier,
-    viewModel : HomeViewModel =  koinViewModel()
+    onViewAllTasks: () -> Unit = {},
+    onTaskClick: (ServiceRequestRowUi) -> Unit = {},
+    viewModel: HomeViewModel = koinViewModel(),
 ) {
     viewModel.checkUserInfo()
     val userInfo = viewModel.loginState.collectAsState()
     val activeTasks by viewModel.activeTasks.collectAsState()
+    val activeTaskCount by viewModel.activeTaskCount.collectAsState()
 
     Column(
         modifier = modifier
@@ -68,9 +72,10 @@ fun HomeScreen(
         Spacer(modifier = Modifier.height(24.dp))
 
         ActiveTasksSection(
-            tasks = activeTasks,
-            onViewAllClick = { /* TODO: navigate to full tasks list */ },
-            onTaskActionClick = { /* TODO: accept / start task */ },
+            tasks = activeTasks.take(1),
+            totalCount = activeTaskCount,
+            onViewAllClick = onViewAllTasks,
+            onTaskClick = onTaskClick,
         )
     }
 }

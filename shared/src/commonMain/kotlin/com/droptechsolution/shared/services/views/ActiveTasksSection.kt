@@ -25,13 +25,15 @@ import org.jetbrains.compose.ui.tooling.preview.Preview
 @Composable
 fun ActiveTasksSection(
     tasks: List<ServiceRequestRowUi>,
+    totalCount: Int = tasks.size,
     modifier: Modifier = Modifier,
     onViewAllClick: () -> Unit = {},
+    onTaskClick: (ServiceRequestRowUi) -> Unit = {},
     onTaskActionClick: (ServiceRequestRowUi) -> Unit = {},
 ) {
     Column(modifier = modifier.fillMaxWidth()) {
         ActiveTasksHeader(
-            taskCount = tasks.size,
+            taskCount = totalCount,
             onViewAllClick = onViewAllClick,
         )
 
@@ -44,6 +46,7 @@ fun ActiveTasksSection(
                 ServiceRequestRow(
                     item = task,
                     onActionClick = onTaskActionClick,
+                    onRowClick = onTaskClick,
                 )
             }
         }

@@ -1,5 +1,6 @@
 package com.droptechsolution.shared.services.views
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -39,6 +40,7 @@ fun ServiceRequestRow(
     item: ServiceRequestRowUi,
     modifier: Modifier = Modifier,
     onActionClick: (ServiceRequestRowUi) -> Unit = {},
+    onRowClick: (ServiceRequestRowUi) -> Unit = {},
 ) {
     ConstraintLayout(
         modifier = modifier
@@ -46,6 +48,7 @@ fun ServiceRequestRow(
             .shadow(elevation = 6.dp, shape = RoundedCornerShape(18.dp), clip = false)
             .clip(RoundedCornerShape(18.dp))
             .background(Color.White)
+            .clickable { onRowClick(item) }
             .padding(horizontal = 16.dp, vertical = 14.dp),
     ) {
         val (iconRef, roomRef, titleRef, subtitleRef, badgeRef, actionRef) = createRefs()

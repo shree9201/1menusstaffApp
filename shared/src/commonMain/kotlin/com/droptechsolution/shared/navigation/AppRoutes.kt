@@ -27,6 +27,15 @@ object DashboardRoute
 object HomeRoute
 
 @Serializable
+object TasksRoute
+
+@Serializable
+data class TaskDetailRoute(
+    val requestId: String,
+    val source: String,
+)
+
+@Serializable
 object ProfileRoute
 
 @Serializable

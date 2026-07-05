@@ -54,6 +54,7 @@ class LoginViewModel(
                         _errorMessage.value = "Invalid credentials"
                     } else {
                         userStorage.saveStaffUser(response.value)
+                        userStorage.saveOutletId(outletCode)
                         _loginState.value = true
                     }
                 }

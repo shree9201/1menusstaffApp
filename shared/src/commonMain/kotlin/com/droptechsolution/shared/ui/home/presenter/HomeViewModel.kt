@@ -25,8 +25,6 @@ class HomeViewModel(
     private val _activeTaskCount = MutableStateFlow(0)
     val activeTaskCount = _activeTaskCount.asStateFlow()
 
-    var outletID = "5"
-
     fun checkUserInfo() {
         viewModelScope.launch {
             userStorage.getLoggedInStaff().collect { staffDetails ->
@@ -47,7 +45,14 @@ class HomeViewModel(
 
     fun loadServices() {
         viewModelScope.launch {
-            when (val result = serviceInteractor.loadAllTasks(outletID, activeOnly = true)) {
+            val outletId = userStorage.requireOutletId()
+            if (outletId.isBlank()) {
+                _activeTaskCount.value = 0
+                _activeTasks.value = emptyList()
+                return@launch
+            }
+
+            when (val result = serviceInteractor.loadAllTasks(outletId, activeOnly = true)) {
                 is NetworkResult.Success -> {
                     _activeTaskCount.value = result.data.rows.size
                     _activeTasks.value = result.data.rows

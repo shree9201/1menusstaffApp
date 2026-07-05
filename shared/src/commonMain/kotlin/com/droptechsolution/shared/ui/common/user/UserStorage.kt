@@ -6,6 +6,7 @@ import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.stringPreferencesKey
 import com.droptechsolution.shared.outletinfo.model.api.staff.StaffDetails
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.map
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
@@ -32,6 +33,20 @@ class UserStorage(
         }
     }
 
+    suspend fun saveOutletId(outletId: String) {
+        dataStore.edit {
+            it[OUTLET_ID] = outletId
+        }
+    }
+
+    fun getOutletId(): Flow<String?> =
+        dataStore.data.map { preferences ->
+            preferences[OUTLET_ID]?.takeIf { it.isNotBlank() }
+        }
+
+    suspend fun requireOutletId(): String =
+        getOutletId().firstOrNull().orEmpty()
+
     fun getLoggedInStaff(): Flow<StaffDetails?> {
         return dataStore.data.map { preferences ->
             val jsonString = preferences[LOGGED_IN_STAFF]
@@ -57,5 +72,7 @@ class UserStorage(
             stringPreferencesKey("username")
         val LOGGED_IN_STAFF =
             stringPreferencesKey("logged_in_staff")
+        val OUTLET_ID =
+            stringPreferencesKey("outlet_id")
     }
 }

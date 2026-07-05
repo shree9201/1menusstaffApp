@@ -30,7 +30,6 @@ class RequestDetailsViewModel(
     private val _errorMessage = MutableStateFlow<String?>(null)
     val errorMessage = _errorMessage.asStateFlow()
 
-    var outletId: String = "5"
     private var currentRequestId: String = ""
     private var currentSource: RequestSource = RequestSource.ROOM
 
@@ -40,6 +39,15 @@ class RequestDetailsViewModel(
         viewModelScope.launch {
             _isLoading.value = true
             _errorMessage.value = null
+
+            val outletId = userStorage.requireOutletId()
+            if (outletId.isBlank()) {
+                _details.value = null
+                _errorMessage.value = "Outlet ID not found. Please log in again."
+                _isLoading.value = false
+                return@launch
+            }
+
             when (
                 val result = servicesInteractor.loadRequestDetails(
                     outletId = outletId,
@@ -65,6 +73,14 @@ class RequestDetailsViewModel(
         viewModelScope.launch {
             _isUpdating.value = true
             _errorMessage.value = null
+
+            val outletId = userStorage.requireOutletId()
+            if (outletId.isBlank()) {
+                _errorMessage.value = "Outlet ID not found. Please log in again."
+                _isUpdating.value = false
+                return@launch
+            }
+
             val staff = userStorage.getLoggedInStaff().firstOrNull()
             val staffId = staff?.id.orEmpty()
             val staffName = staff?.name ?: "Staff"

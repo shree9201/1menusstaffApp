@@ -83,6 +83,7 @@ fun RequestDetailsScreen(
     }
 
     val details by viewModel.details.collectAsState()
+    val slaProgress by viewModel.slaProgress.collectAsState()
     val isLoading by viewModel.isLoading.collectAsState()
     val isUpdating by viewModel.isUpdating.collectAsState()
     val errorMessage by viewModel.errorMessage.collectAsState()
@@ -118,6 +119,10 @@ fun RequestDetailsScreen(
                         .padding(horizontal = 20.dp, vertical = 16.dp),
                 ) {
                     Spacer(modifier = Modifier.height(36.dp))
+                    if (details!!.reminderTimeMinutes > 0 && slaProgress != null) {
+                        SlaProgressCard(progress = slaProgress!!)
+                        Spacer(modifier = Modifier.height(14.dp))
+                    }
                     TaskSummaryCard(details = details!!)
                     Spacer(modifier = Modifier.height(14.dp))
                     DepartmentDurationCard(details = details!!)
@@ -131,6 +136,15 @@ fun RequestDetailsScreen(
                             actions = details!!.availableActions,
                             isUpdating = isUpdating,
                             onAction = viewModel::performAction,
+                        )
+                    }
+                    errorMessage?.let { message ->
+                        Spacer(modifier = Modifier.height(12.dp))
+                        Text(
+                            text = message,
+                            color = ActionRejectText,
+                            fontSize = 14.sp,
+                            modifier = Modifier.fillMaxWidth(),
                         )
                     }
                     Spacer(modifier = Modifier.height(88.dp))
@@ -245,6 +259,15 @@ private fun DepartmentDurationCard(details: RequestDetailsUi) {
             .padding(horizontal = 20.dp, vertical = 18.dp),
     ) {
         InfoSplitRow(label = "Department", value = details.department)
+        Spacer(modifier = Modifier.height(14.dp))
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(1.dp)
+                .background(Color(0xFFE5E7EB)),
+        )
+        Spacer(modifier = Modifier.height(14.dp))
+        InfoSplitRow(label = "Reminder time", value = details.reminderTime)
         Spacer(modifier = Modifier.height(14.dp))
         Box(
             modifier = Modifier
@@ -410,52 +433,156 @@ private fun TaskActionsSection(
             }
         }
 
-        actions.filter { it == RequestAction.ACCEPT || it == RequestAction.START }.forEach { action ->
-            PrimaryActionButton(action = action, enabled = !isUpdating, onClick = { onAction(action) })
-            Spacer(modifier = Modifier.height(10.dp))
-        }
-
-        val secondary = actions.filter { it == RequestAction.PASS || it == RequestAction.PAUSE }
-        if (secondary.isNotEmpty()) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(10.dp),
-            ) {
-                secondary.forEach { action ->
-                    SecondaryActionButton(
-                        action = action,
-                        enabled = !isUpdating,
-                        onClick = { onAction(action) },
-                        modifier = Modifier.weight(1f),
-                    )
-                }
-            }
-            Spacer(modifier = Modifier.height(10.dp))
-        }
-
-        if (RequestAction.REJECT in actions) {
-            RejectActionButton(
+        if (RequestAction.HOLD_ESCALATE in actions && RequestAction.START in actions) {
+            AcceptedActionsSection(
                 enabled = !isUpdating,
-                onClick = { onAction(RequestAction.REJECT) },
+                onAction = onAction,
+            )
+        } else if (RequestAction.COMPLETE in actions && RequestAction.PAUSE in actions) {
+            InProgressActionsSection(
+                actions = actions,
+                enabled = !isUpdating,
+                onAction = onAction,
+            )
+        } else {
+            DefaultActionsSection(
+                actions = actions,
+                enabled = !isUpdating,
+                onAction = onAction,
             )
         }
+    }
+}
 
-        Spacer(modifier = Modifier.height(16.dp))
-        Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
-            Box(
-                modifier = Modifier
-                    .clip(RoundedCornerShape(999.dp))
-                    .background(ActionBlueBg)
-                    .padding(horizontal = 16.dp, vertical = 6.dp),
-            ) {
-                Text(
-                    text = "STAFF SCREEN",
-                    color = ActionBlue,
-                    fontSize = 12.sp,
-                    fontWeight = FontWeight.Bold,
+@Composable
+private fun AcceptedActionsSection(
+    enabled: Boolean,
+    onAction: (RequestAction) -> Unit,
+) {
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.spacedBy(10.dp),
+    ) {
+        ActionButton(
+            label = "Hold and Escalate",
+            icon = Icons.Default.Pause,
+            background = ActionPauseBg,
+            contentColor = ActionPauseBorder,
+            borderColor = ActionPauseBorder,
+            enabled = enabled,
+            onClick = { onAction(RequestAction.HOLD_ESCALATE) },
+            modifier = Modifier.weight(1f),
+        )
+        ActionButton(
+            label = "Start Work",
+            icon = Icons.Default.PlayArrow,
+            background = ActionGreen,
+            contentColor = Color.White,
+            borderColor = ActionGreen,
+            enabled = enabled,
+            onClick = { onAction(RequestAction.START) },
+            modifier = Modifier.weight(1f),
+        )
+    }
+}
+
+@Composable
+private fun InProgressActionsSection(
+    actions: List<RequestAction>,
+    enabled: Boolean,
+    onAction: (RequestAction) -> Unit,
+) {
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.spacedBy(10.dp),
+    ) {
+        if (RequestAction.PAUSE in actions) {
+            ActionButton(
+                label = "Pause Service",
+                icon = Icons.Default.Pause,
+                background = ActionPauseBg,
+                contentColor = ActionPauseBorder,
+                borderColor = ActionPauseBorder,
+                enabled = enabled,
+                onClick = { onAction(RequestAction.PAUSE) },
+                modifier = Modifier.weight(1f),
+            )
+        }
+        if (RequestAction.PASS in actions) {
+            ActionButton(
+                label = "Pass",
+                icon = Icons.AutoMirrored.Filled.Reply,
+                background = ActionBlueBg,
+                contentColor = ActionBlue,
+                borderColor = ActionBlue,
+                enabled = enabled,
+                onClick = { onAction(RequestAction.PASS) },
+                modifier = Modifier.weight(1f),
+            )
+        }
+    }
+
+    if (RequestAction.COMPLETE in actions) {
+        Spacer(modifier = Modifier.height(10.dp))
+        ActionButton(
+            label = "Complete Service",
+            icon = Icons.Default.Check,
+            background = ActionGreen,
+            contentColor = Color.White,
+            borderColor = ActionGreen,
+            enabled = enabled,
+            onClick = { onAction(RequestAction.COMPLETE) },
+        )
+    }
+}
+
+@Composable
+private fun DefaultActionsSection(
+    actions: List<RequestAction>,
+    enabled: Boolean,
+    onAction: (RequestAction) -> Unit,
+) {
+    actions.filter { it == RequestAction.ACCEPT || it == RequestAction.START }.forEach { action ->
+        PrimaryActionButton(action = action, enabled = enabled, onClick = { onAction(action) })
+        Spacer(modifier = Modifier.height(10.dp))
+    }
+
+    val secondary = actions.filter { it == RequestAction.PASS || it == RequestAction.PAUSE }
+    if (secondary.isNotEmpty()) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(10.dp),
+        ) {
+            secondary.forEach { action ->
+                SecondaryActionButton(
+                    action = action,
+                    enabled = enabled,
+                    onClick = { onAction(action) },
+                    modifier = Modifier.weight(1f),
                 )
             }
         }
+        Spacer(modifier = Modifier.height(10.dp))
+    }
+
+    if (RequestAction.REJECT in actions) {
+        RejectActionButton(
+            enabled = enabled,
+            onClick = { onAction(RequestAction.REJECT) },
+        )
+    }
+
+    if (RequestAction.COMPLETE in actions) {
+        Spacer(modifier = Modifier.height(10.dp))
+        ActionButton(
+            label = "Complete Service",
+            icon = Icons.Default.Check,
+            background = ActionGreen,
+            contentColor = Color.White,
+            borderColor = ActionGreen,
+            enabled = enabled,
+            onClick = { onAction(RequestAction.COMPLETE) },
+        )
     }
 }
 
@@ -467,7 +594,7 @@ private fun PrimaryActionButton(
 ) {
     val (label, icon) = when (action) {
         RequestAction.ACCEPT -> "Accept Request" to Icons.Default.Check
-        RequestAction.START -> "Start Service" to Icons.Default.PlayArrow
+        RequestAction.START -> "Start Work" to Icons.Default.PlayArrow
         else -> return
     }
     ActionButton(

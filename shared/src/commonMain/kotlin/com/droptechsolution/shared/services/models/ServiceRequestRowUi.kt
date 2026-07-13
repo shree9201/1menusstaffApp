@@ -28,14 +28,15 @@ data class ServiceRequestRowUi(
 )
 
 fun RoomRequest.toRowUi(priority: TaskPriority = TaskPriority.MEDIUM): ServiceRequestRowUi {
+    println("RoomRequest.toRowUi with title ${id} ${title}")
     return ServiceRequestRowUi(
         id = id,
         roomNumber = roomId,
-        title = displayTitle(),
+        title = displayTitle(title),
         subtitle = status.toTaskSubtitle(createdDate),
         priority = priority,
         action = status.toTaskAction(),
-        source = RequestSource.ROOM,
+        source = RequestSource.ROOM
     )
 }
 
@@ -47,7 +48,7 @@ fun OutletService.toRowUi(): ServiceRequestRowUi =
         subtitle = information.ifBlank { actionBy }.ifBlank { "Outlet service" },
         priority = priority.toTaskPriority(),
         action = TaskActionType.NONE,
-        source = RequestSource.OUTLET,
+        source = RequestSource.OUTLET
     )
 
 fun String.toTaskPriority(): TaskPriority = when (lowercase()) {
@@ -56,8 +57,9 @@ fun String.toTaskPriority(): TaskPriority = when (lowercase()) {
     else -> TaskPriority.MEDIUM
 }
 
-fun RoomRequest.displayTitle(): String =
-    title.ifBlank { note.trim().lineSequence().firstOrNull().orEmpty() }
+fun RoomRequest.displayTitle(serviceTitle: String? = null): String =
+    title.ifBlank { serviceTitle.orEmpty() }
+        .ifBlank { note.trim().lineSequence().firstOrNull().orEmpty() }
         .ifBlank { "Service Request" }
 
 fun String.toTaskAction(): TaskActionType = when (uppercase()) {

@@ -27,19 +27,27 @@ data class TimeMetrics(
 data class OutletService(
     val id: String,
     val title: String,
+    val userId: String,
     val boxId: String,
     val serviceId: String,
     val actionBy: String,
+    val aksDateTime: String,
+    val sq: String? = null,
+    val information: String,
+    val reminderTime: String,
+    val escalationTime: String,
     val priority: String,
     val points: Int,
-    val information: String,
+    val onHoldOption: String,
     val status: String,
-    val escalationTime: String = "",
+    val createdDate: String,
+    val updatedDate: String,
 )
 
 data class RequestDetails(
     val request: RoomRequest,
     val activities: List<RequestActivity>,
+    val serviceDetails: OutletService? = null,
 )
 
 data class RequestActivity(
@@ -87,14 +95,21 @@ fun OutletServiceDto.toDomain(): OutletService {
     return OutletService(
         id = id,
         title = title,
+        userId = userId,
         boxId = boxId,
         serviceId = serviceId,
         actionBy = actionBy,
+        aksDateTime = aksDateTime,
+        sq = sq,
+        information = information,
+        reminderTime = reminderTime,
+        escalationTime = escalationTime,
         priority = priority,
         points = points.toIntOrNull() ?: 0,
-        information = information,
+        onHoldOption = onHoldOption,
         status = status,
-        escalationTime = escalationTime,
+        createdDate = created_date,
+        updatedDate = updated_date,
     )
 }
 

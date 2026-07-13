@@ -89,6 +89,7 @@ kotlin {
             implementation("io.ktor:ktor-client-core:2.3.7")
             implementation("io.ktor:ktor-client-content-negotiation:2.3.7")
             implementation("io.ktor:ktor-serialization-kotlinx-json:2.3.7")
+            implementation("org.jetbrains.kotlinx:kotlinx-datetime:0.6.1")
             implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.0")
 
             implementation("androidx.datastore:datastore-preferences:1.1.1")
@@ -109,6 +110,7 @@ kotlin {
             implementation("com.google.firebase:firebase-messaging-ktx:24.1.2")
             implementation( "androidx.lifecycle:lifecycle-viewmodel-ktx:2.5.0") // or higher
             implementation(libs.koin.android)
+            implementation("androidx.work:work-runtime-ktx:2.9.1")
         }
 
         commonTest {

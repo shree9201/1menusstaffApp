@@ -1,5 +1,7 @@
 package com.droptechsolution.shared.navigation
 
+import com.droptechsolution.shared.services.models.RequestActivityDto
+import com.droptechsolution.shared.services.models.RequestDetails
 import kotlinx.serialization.Serializable
 
 /**
@@ -27,7 +29,10 @@ object DashboardRoute
 object HomeRoute
 
 @Serializable
-object TasksRoute
+data class TasksRoute(
+    val statusFilter: String? = null,
+    val overviewCategory: String? = null,
+)
 
 @Serializable
 data class TaskDetailRoute(

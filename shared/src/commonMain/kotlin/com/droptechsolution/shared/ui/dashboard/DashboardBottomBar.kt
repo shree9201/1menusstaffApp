@@ -1,6 +1,5 @@
 package com.droptechsolution.shared.ui.dashboard
 
-import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Assignment
 import androidx.compose.material.icons.filled.Home
@@ -31,7 +30,6 @@ fun DashboardBottomBar(
     NavigationBar(
         containerColor = Color.White,
         tonalElevation = 0.dp,
-        windowInsets = WindowInsets(0, 0, 0, 0),
     ) {
         NavigationBarItem(
             selected = selectedTab == DashboardTab.Home,

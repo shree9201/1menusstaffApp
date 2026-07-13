@@ -19,9 +19,11 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Notifications
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
@@ -33,10 +35,13 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.droptechsolution.shared.services.models.DepartmentOverviewStatUi
 import com.droptechsolution.shared.services.models.ServiceRequestRowUi
 import com.droptechsolution.shared.services.views.ActiveTasksSection
+import com.droptechsolution.shared.services.views.DepartmentOverviewSection
 import com.droptechsolution.shared.ui.home.presenter.HomeViewModel
 import com.droptechsolution.shared.ui.theme.BG_LIGHT
+import com.droptechsolution.shared.ui.theme.MenusTeal
 import com.droptechsolution.shared.ui.theme.MenusGradients
 import com.droptechsolution.shared.ui.theme.MenusTextStyles
 import org.jetbrains.compose.ui.tooling.preview.Preview
@@ -46,13 +51,19 @@ import org.koin.compose.viewmodel.koinViewModel
 fun HomeScreen(
     modifier: Modifier = Modifier,
     onViewAllTasks: () -> Unit = {},
+    onOverviewClick: (DepartmentOverviewStatUi) -> Unit = {},
     onTaskClick: (ServiceRequestRowUi) -> Unit = {},
     viewModel: HomeViewModel = koinViewModel(),
 ) {
-    viewModel.checkUserInfo()
+    LaunchedEffect(Unit) {
+        viewModel.loadDashboard()
+    }
+
     val userInfo = viewModel.loginState.collectAsState()
     val activeTasks by viewModel.activeTasks.collectAsState()
     val activeTaskCount by viewModel.activeTaskCount.collectAsState()
+    val overviewStats by viewModel.overviewStats.collectAsState()
+    val isLoadingStats by viewModel.isLoadingStats.collectAsState()
 
     Column(
         modifier = modifier
@@ -70,6 +81,26 @@ fun HomeScreen(
         )
 
         Spacer(modifier = Modifier.height(24.dp))
+
+        when {
+            isLoadingStats -> {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 24.dp),
+                    contentAlignment = Alignment.Center,
+                ) {
+                    CircularProgressIndicator(color = MenusTeal)
+                }
+            }
+            else -> {
+                DepartmentOverviewSection(
+                    stats = overviewStats,
+                    onStatClick = onOverviewClick,
+                )
+                Spacer(modifier = Modifier.height(24.dp))
+            }
+        }
 
         ActiveTasksSection(
             tasks = activeTasks.take(1),

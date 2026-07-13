@@ -2,6 +2,7 @@ package com.droptechsolution.shared.ui.login
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.droptechsolution.shared.masterdata.interactor.MasterDataInteractor
 import com.droptechsolution.shared.network.NetworkResult
 import com.droptechsolution.shared.outletinfo.model.api.OutletApi
 import com.droptechsolution.shared.outletinfo.model.api.staff.StaffLoginRequest
@@ -15,6 +16,7 @@ class LoginViewModel(
     private val pushTokenProvider: IPushTokenProvider,
     private val userStorage: UserStorage,
     private val outletApi: OutletApi,
+    private val masterDataInteractor: MasterDataInteractor,
 ) : ViewModel() {
 
     private val _loginState = MutableStateFlow(false)
@@ -26,11 +28,10 @@ class LoginViewModel(
     private val _isLoading = MutableStateFlow(false)
     val isLoading = _isLoading.asStateFlow()
 
-
     private val _isLoggedInState = MutableStateFlow(false)
     val _isLoggedIn = _isLoggedInState.asStateFlow()
 
-    fun login(outletCode: String, username: String, password: String,userType:String) {
+    fun login(outletCode: String, username: String, password: String, userType: String) {
         viewModelScope.launch {
             _isLoading.value = true
             _errorMessage.value = ""
@@ -54,11 +55,10 @@ class LoginViewModel(
                         _errorMessage.value = "Invalid credentials"
                     } else {
                         userStorage.saveStaffUser(response.value)
-                        userStorage.saveOutletId(outletCode)
+                        loadMasterData()
                         _loginState.value = true
                     }
                 }
-
                 is NetworkResult.Error -> {
                     _errorMessage.value = result.error.userMessage
                 }
@@ -67,29 +67,23 @@ class LoginViewModel(
         }
     }
 
-    fun checkUserInfo(){
+    fun checkUserInfo() {
         viewModelScope.launch {
             userStorage.getLoggedInStaff().collect { staffDetails ->
                 if (staffDetails != null) {
-                    // Staff is logged in! Update state or trigger navigation
-//                _staffState.value = staffDetails
-                    println("Staff found: ${staffDetails.name}")
                     _isLoggedInState.emit(true)
-                } else {
-                    // No staff logged in
-//                _staffState.value = null
-                    println("No staff logged in")
+                    loadMasterData()
                 }
             }
         }
-
-
     }
 
+    private suspend fun loadMasterData() {
+        when (val result = masterDataInteractor.loadMasterData()) {
+            is NetworkResult.Success -> Unit
+            is NetworkResult.Error -> {
+                // Non-blocking: login still succeeds if master data fails.
+            }
+        }
+    }
 }
-//
-//val loginViewModelFactory = viewModelFactory {
-//    initializer {
-//        LoginViewModel()
-//    }
-//}

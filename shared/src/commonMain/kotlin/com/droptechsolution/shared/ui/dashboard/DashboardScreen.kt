@@ -77,13 +77,17 @@ fun DashboardScreen(
                 composable<HomeRoute> {
                     HomeScreen(
                         modifier = Modifier.fillMaxSize(),
-                        onViewAllTasks = dashboardNavigator::goToTasks,
+                        onViewAllTasks = { dashboardNavigator.goToTasks() },
+                        onOverviewClick = dashboardNavigator::goToTasksFromOverview,
                         onTaskClick = dashboardNavigator::goToTaskDetail,
                     )
                 }
-                composable<TasksRoute> {
+                composable<TasksRoute> { backStackEntry ->
+                    val route = backStackEntry.toRoute<TasksRoute>()
                     TasksScreen(
                         modifier = Modifier.fillMaxSize(),
+                        statusFilter = route.statusFilter,
+                        overviewCategory = route.overviewCategory,
                         onTaskClick = dashboardNavigator::goToTaskDetail,
                     )
                 }

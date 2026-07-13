@@ -22,17 +22,26 @@ data class RequestActivityDto(
 data class RequestDetailsResponse(
     val status: String,
     val value: RoomRequestDto,
+    val serviceDetails: OutletServiceDto? = null,
     val activity: List<RequestActivityDto> = emptyList(),
+    val timeMetrics: TimeMetricsDto? = null,
 )
 
 fun RequestDetailsResponse.isSuccessful(): Boolean =
     status.equals("true", ignoreCase = true) || status == "1"
 
-fun RequestDetailsResponse.toDomain(): RequestDetails =
-    RequestDetails(
-        request = value.toDomain(),
+fun RequestDetailsResponse.toDomain(): RequestDetails {
+    val request = value.toDomain()
+    val requestWithMetrics = timeMetrics?.let { metrics ->
+        request.copy(timeMetrics = metrics.toDomain())
+    } ?: request
+
+    return RequestDetails(
+        request = requestWithMetrics,
         activities = activity.map { it.toDomain() },
+        serviceDetails = serviceDetails?.toDomain(),
     )
+}
 
 fun RequestActivityDto.toDomain(): RequestActivity =
     RequestActivity(

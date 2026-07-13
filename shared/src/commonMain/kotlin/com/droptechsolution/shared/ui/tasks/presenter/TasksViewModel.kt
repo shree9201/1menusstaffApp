@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.droptechsolution.shared.network.NetworkResult
 import com.droptechsolution.shared.services.interactor.ServicesInteractor
+import com.droptechsolution.shared.services.models.DepartmentOverviewCategory
 import com.droptechsolution.shared.services.models.ServiceRequestRowUi
 import com.droptechsolution.shared.ui.common.user.UserStorage
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -24,7 +25,21 @@ class TasksViewModel(
     private val _errorMessage = MutableStateFlow<String?>(null)
     val errorMessage = _errorMessage.asStateFlow()
 
-    fun loadTasks() {
+    private val _statusFilter = MutableStateFlow<String?>(null)
+    val statusFilter = _statusFilter.asStateFlow()
+
+    private val _overviewCategory = MutableStateFlow<DepartmentOverviewCategory?>(null)
+    val overviewCategory = _overviewCategory.asStateFlow()
+
+    fun loadTasks(
+        statusFilter: String? = null,
+        overviewCategoryKey: String? = null,
+    ) {
+        _statusFilter.value = statusFilter
+        _overviewCategory.value = overviewCategoryKey?.let { key ->
+            DepartmentOverviewCategory.entries.firstOrNull { it.name == key }
+        }
+
         viewModelScope.launch {
             _isLoading.value = true
             _errorMessage.value = null
@@ -37,7 +52,16 @@ class TasksViewModel(
                 return@launch
             }
 
-            when (val result = servicesInteractor.loadAllTasks(outletId, activeOnly = false)) {
+            val statusFilters = _overviewCategory.value?.toFilterStatuses().orEmpty()
+
+            when (
+                val result = servicesInteractor.loadAllTasks(
+                    outletId = outletId,
+                    activeOnly = false,
+                    statusFilter = statusFilter,
+                    statusFilters = statusFilters,
+                )
+            ) {
                 is NetworkResult.Success -> {
                     _tasks.value = result.data.rows
                 }
@@ -48,5 +72,12 @@ class TasksViewModel(
             }
             _isLoading.value = false
         }
+    }
+
+    private fun DepartmentOverviewCategory.toFilterStatuses(): List<String> = when (this) {
+        DepartmentOverviewCategory.PENDING -> listOf("NEW")
+        DepartmentOverviewCategory.IN_PROGRESS -> listOf("ACCEPT", "START")
+        DepartmentOverviewCategory.COMPLETED -> listOf("CLOSE")
+        DepartmentOverviewCategory.DELAYED -> listOf("ESCALATED")
     }
 }

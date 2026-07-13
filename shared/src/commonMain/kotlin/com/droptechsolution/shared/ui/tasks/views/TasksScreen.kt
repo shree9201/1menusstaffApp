@@ -22,6 +22,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.droptechsolution.shared.services.models.DepartmentOverviewCategory
 import com.droptechsolution.shared.services.models.ServiceRequestRowUi
 import com.droptechsolution.shared.services.views.ServiceRequestRow
 import com.droptechsolution.shared.ui.tasks.presenter.TasksViewModel
@@ -33,17 +34,23 @@ import org.koin.compose.viewmodel.koinViewModel
 
 @Composable
 fun TasksScreen(
+    statusFilter: String? = null,
+    overviewCategory: String? = null,
     onTaskClick: (ServiceRequestRowUi) -> Unit,
     modifier: Modifier = Modifier,
     viewModel: TasksViewModel = koinViewModel(),
 ) {
-    LaunchedEffect(Unit) {
-        viewModel.loadTasks()
+    LaunchedEffect(statusFilter, overviewCategory) {
+        viewModel.loadTasks(statusFilter, overviewCategory)
     }
 
     val tasks by viewModel.tasks.collectAsState()
     val isLoading by viewModel.isLoading.collectAsState()
     val errorMessage by viewModel.errorMessage.collectAsState()
+    val activeFilter by viewModel.statusFilter.collectAsState()
+    val activeOverview by viewModel.overviewCategory.collectAsState()
+
+    val filterLabel = activeOverview?.toLabel() ?: activeFilter?.toFilterLabel()
 
     Column(
         modifier = modifier
@@ -53,7 +60,7 @@ fun TasksScreen(
             .padding(24.dp),
     ) {
         Text(
-            text = "Tasks (${tasks.size})",
+            text = if (filterLabel != null) "$filterLabel (${tasks.size})" else "Tasks (${tasks.size})",
             color = BLACK,
             fontSize = 26.sp,
             fontWeight = FontWeight.Bold,
@@ -62,7 +69,11 @@ fun TasksScreen(
         Spacer(modifier = Modifier.height(8.dp))
 
         Text(
-            text = "Room requests and outlet services",
+            text = if (filterLabel != null) {
+                "Filtered room requests"
+            } else {
+                "Room requests and outlet services"
+            },
             color = TextMuted,
             fontSize = 15.sp,
         )
@@ -89,7 +100,11 @@ fun TasksScreen(
             }
             tasks.isEmpty() -> {
                 Text(
-                    text = "No tasks available",
+                    text = if (filterLabel != null) {
+                        "No $filterLabel requests found"
+                    } else {
+                        "No tasks available"
+                    },
                     color = TextMuted,
                     fontSize = 16.sp,
                 )
@@ -106,4 +121,22 @@ fun TasksScreen(
             }
         }
     }
+}
+
+private fun DepartmentOverviewCategory.toLabel(): String = when (this) {
+    DepartmentOverviewCategory.PENDING -> "Pending"
+    DepartmentOverviewCategory.IN_PROGRESS -> "In Progress"
+    DepartmentOverviewCategory.COMPLETED -> "Completed"
+    DepartmentOverviewCategory.DELAYED -> "Delayed"
+}
+
+private fun String.toFilterLabel(): String = when (uppercase()) {
+    "NEW" -> "New"
+    "ACCEPT", "ACCEPTED" -> "Accepted"
+    "START", "STARTED" -> "In Progress"
+    "CLOSE", "CLOSED" -> "Completed"
+    "HOLD", "PAUSE", "PAUSED" -> "On Hold"
+    "REJECT", "REJECTED" -> "Rejected"
+    "ESCALATED" -> "Escalated"
+    else -> this
 }

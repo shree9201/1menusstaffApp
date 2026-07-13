@@ -11,7 +11,12 @@ data class RequestDetailsUi(
     val guestLabel: String,
     val requestedMeta: String,
     val department: String,
+    val reminderTime: String,
+    val reminderTimeMinutes: Int,
     val estimatedDuration: String,
+    val priorityShort: String,
+    val slaCardTitle: String,
+    val workStartedAt: String,
     val note: String,
     val points: Int,
     val timelineSteps: List<TimelineStepUi>,
@@ -39,10 +44,15 @@ enum class RequestStatusDisplay {
 }
 
 fun RequestDetails.toUi(outletService: OutletService? = null): RequestDetailsUi {
-    val displayTitle = request.displayTitle()
-    val priority = outletService?.priority?.toTaskPriority() ?: TaskPriority.MEDIUM
-    val department = outletService?.actionBy.toDepartmentLabel()
-    val estDuration = outletService?.escalationTimeMinutes() ?: "25 min"
+    val service = serviceDetails ?: outletService
+    val displayTitle = request.displayTitle(service?.title)
+    val priority = service?.priority?.toTaskPriority() ?: TaskPriority.MEDIUM
+    val department = service?.actionBy.toDepartmentLabel()
+    val reminderDuration = service.toReminderDurationLabel()
+    val reminderMinutes = service.toReminderMinutes()
+    val estDuration = service.toEscalationDurationLabel()
+    val priorityShort = priority.toShortLabel()
+    val slaCardTitle = "Room ${request.roomId} — ${displayTitle.ifBlank { "Service" }}"
     val statusDisplay = request.status.toStatusDisplay()
     val timelineSteps = activities.toTimelineSteps(request.status)
 
@@ -57,7 +67,12 @@ fun RequestDetails.toUi(outletService: OutletService? = null): RequestDetailsUi 
         guestLabel = request.guestName.takeIf { it.isNotBlank() }?.let { "Guest: $it" } ?: "Guest: —",
         requestedMeta = buildRequestedMeta(request.createdDate, estDuration),
         department = department,
+        reminderTime = reminderDuration,
+        reminderTimeMinutes = reminderMinutes,
         estimatedDuration = estDuration,
+        priorityShort = priorityShort,
+        slaCardTitle = slaCardTitle,
+        workStartedAt = request.startTime,
         note = request.note,
         points = request.points,
         timelineSteps = timelineSteps,
@@ -77,7 +92,12 @@ fun OutletService.toDetailsUi(): RequestDetailsUi =
         guestLabel = "Guest: —",
         requestedMeta = "Outlet service",
         department = actionBy.toDepartmentLabel(),
-        estimatedDuration = escalationTimeMinutes(),
+        reminderTime = toReminderDurationLabel(),
+        reminderTimeMinutes = toReminderMinutes(),
+        estimatedDuration = toEscalationDurationLabel(),
+        priorityShort = priority.toTaskPriority().toShortLabel(),
+        slaCardTitle = "Box $boxId — ${title.ifBlank { "Service" }}",
+        workStartedAt = "",
         note = information,
         points = points,
         timelineSteps = emptyList(),
@@ -105,8 +125,19 @@ private fun String?.toDepartmentLabel(): String = when (this?.uppercase()) {
     else -> this
 }
 
-private fun OutletService.escalationTimeMinutes(): String {
-    val minutes = escalationTime.toIntOrNull()
+private fun OutletService?.toReminderDurationLabel(): String {
+    val minutes = this?.reminderTime?.toIntOrNull()
+    return when {
+        minutes != null && minutes > 0 -> "$minutes min"
+        else -> "—"
+    }
+}
+
+private fun OutletService?.toReminderMinutes(): Int =
+    this?.reminderTime?.toIntOrNull()?.coerceAtLeast(0) ?: 0
+
+private fun OutletService?.toEscalationDurationLabel(): String {
+    val minutes = this?.escalationTime?.toIntOrNull()
     return when {
         minutes != null && minutes > 0 -> "$minutes min"
         else -> "25 min"
@@ -117,6 +148,12 @@ private fun TaskPriority.toLabel(): String = when (this) {
     TaskPriority.HIGH -> "High priority"
     TaskPriority.MEDIUM -> "Medium priority"
     TaskPriority.LOW -> "Low priority"
+}
+
+private fun TaskPriority.toShortLabel(): String = when (this) {
+    TaskPriority.HIGH -> "High"
+    TaskPriority.MEDIUM -> "Med"
+    TaskPriority.LOW -> "Low"
 }
 
 fun String.toStatusDisplay(): RequestStatusDisplay = when (uppercase()) {
@@ -131,10 +168,10 @@ fun String.toStatusDisplay(): RequestStatusDisplay = when (uppercase()) {
 }
 
 fun String.toAvailableActions(): List<RequestAction> = when (toStatusDisplay()) {
-    RequestStatusDisplay.NEW -> listOf(RequestAction.ACCEPT, RequestAction.PASS, RequestAction.REJECT)
-    RequestStatusDisplay.ACCEPTED -> listOf(RequestAction.START, RequestAction.PASS, RequestAction.PAUSE, RequestAction.REJECT)
-    RequestStatusDisplay.IN_PROGRESS -> listOf(RequestAction.PAUSE, RequestAction.REJECT)
-    RequestStatusDisplay.ON_HOLD -> listOf(RequestAction.START, RequestAction.REJECT)
+    RequestStatusDisplay.NEW -> listOf(RequestAction.ACCEPT, RequestAction.REJECT)
+    RequestStatusDisplay.ACCEPTED -> listOf(RequestAction.HOLD_ESCALATE, RequestAction.START)
+    RequestStatusDisplay.IN_PROGRESS -> listOf(RequestAction.PAUSE, RequestAction.PASS, RequestAction.COMPLETE)
+    RequestStatusDisplay.ON_HOLD -> listOf(RequestAction.START, RequestAction.COMPLETE)
     else -> emptyList()
 }
 

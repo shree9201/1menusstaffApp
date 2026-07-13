@@ -10,6 +10,7 @@ val loginModule = module {
             pushTokenProvider = get(),
             userStorage = get(),
             outletApi = get(),
+            masterDataInteractor = get(),
         )
     }
 }

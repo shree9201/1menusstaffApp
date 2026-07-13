@@ -1,5 +1,6 @@
 package com.droptechsolution.shared.services.models
 
+import com.droptechsolution.shared.outletinfo.model.api.staff.StaffDetails
 import kotlinx.serialization.Serializable
 
 @Serializable
@@ -9,6 +10,7 @@ data class UpdateRequestBody(
     val status: String,
     val assignedTo: String,
     val comment: String,
+    val user: StaffDetails,
 )
 
 @Serializable
@@ -26,6 +28,8 @@ enum class RequestAction {
     START,
     PASS,
     PAUSE,
+    HOLD_ESCALATE,
+    COMPLETE,
     REJECT,
 }
 
@@ -34,13 +38,17 @@ fun RequestAction.apiStatus(): String = when (this) {
     RequestAction.START -> "STARTED"
     RequestAction.PASS -> "PASS"
     RequestAction.PAUSE -> "HOLD"
+    RequestAction.HOLD_ESCALATE -> "ESCALATED"
+    RequestAction.COMPLETE -> "CLOSE"
     RequestAction.REJECT -> "REJECTED"
 }
 
 fun RequestAction.defaultComment(staffName: String): String = when (this) {
     RequestAction.ACCEPT -> "Request Accepted by $staffName"
-    RequestAction.START -> "Service started by $staffName"
+    RequestAction.START -> "Work started by $staffName"
     RequestAction.PASS -> "Request passed by $staffName"
-    RequestAction.PAUSE -> "Request paused by $staffName"
+    RequestAction.PAUSE -> "Service paused by $staffName"
+    RequestAction.HOLD_ESCALATE -> "Request held and escalated by $staffName"
+    RequestAction.COMPLETE -> "Service completed by $staffName"
     RequestAction.REJECT -> "Request rejected by $staffName"
 }

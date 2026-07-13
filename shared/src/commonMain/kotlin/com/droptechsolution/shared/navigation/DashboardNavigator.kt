@@ -1,8 +1,10 @@
 package com.droptechsolution.shared.navigation
 
 import androidx.navigation.NavHostController
+import com.droptechsolution.shared.services.models.DepartmentOverviewStatUi
 import com.droptechsolution.shared.services.models.RequestSource
 import com.droptechsolution.shared.services.models.ServiceRequestRowUi
+import com.droptechsolution.shared.services.models.apiKey
 
 /**
  * Navigator scoped to the dashboard nested graph (bottom-bar tabs).
@@ -12,7 +14,27 @@ class DashboardNavigator(
 ) {
     fun goToFeed() = navigateToTab(HomeRoute)
 
-    fun goToTasks() = navigateToTab(TasksRoute)
+    fun goToTasks(
+        statusFilter: String? = null,
+        overviewCategory: String? = null,
+    ) {
+        navController.navigate(
+            TasksRoute(
+                statusFilter = statusFilter,
+                overviewCategory = overviewCategory,
+            ),
+        ) {
+            popUpTo<HomeRoute> { saveState = true }
+            launchSingleTop = statusFilter == null && overviewCategory == null
+            restoreState = statusFilter == null && overviewCategory == null
+        }
+    }
+
+    fun goToTasksFromOverview(stat: DepartmentOverviewStatUi) {
+        goToTasks(
+            overviewCategory = stat.category.apiKey(),
+        )
+    }
 
     fun goToProfile() = navigateToTab(ProfileRoute)
 
@@ -22,7 +44,7 @@ class DashboardNavigator(
         navController.navigate(
             TaskDetailRoute(
                 requestId = task.id,
-                source = task.source.name,
+                source = task.source.name
             ),
         )
     }

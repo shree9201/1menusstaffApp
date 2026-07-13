@@ -6,7 +6,7 @@ object URN {
     val SERVER2: String = "https://api.1menu.com"
     val OUTLET_INFO = "/API/outletInfo"
 //    val STAFF_LOGIN ="/application_service/staffLogin"
-    val STAFF_LOGIN ="/staffLogin"
+    val STAFF_LOGIN ="staffLogin"
     val STAFF_LIST = "/application_service/getStaffList"
     val SEND_NOTIFICATION = "/sendPushNotification"
 
@@ -15,4 +15,6 @@ object URN {
     val GET_OUTLET_SERVICES ="getOutletServices"
     val GET_REQUEST_DETAILS = "getRequestDetails"
     val UPDATE_REQUEST = "updateRequest"
+    val SERVICE_STATUS_COUNT = "serviceStatusCount"
+    val MASTER_DATA = "masterData"
 }

@@ -11,68 +11,51 @@ import kotlinx.coroutines.flow.map
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 
-//class UserStorage {
-//    val Context.dataStore by preferencesDataStore(name = "token_prefs")
-//}
-
 class UserStorage(
     private val dataStore: DataStore<Preferences>
 ) {
 
     suspend fun saveUser(name: String) {
-
         dataStore.edit {
             it[USERNAME] = name
         }
-
     }
 
-    suspend fun saveStaffUser(name: StaffDetails) {
+    suspend fun saveStaffUser(staff: StaffDetails) {
         dataStore.edit {
-            it[LOGGED_IN_STAFF] = Json.encodeToString(name)
+            it[LOGGED_IN_STAFF] = Json.encodeToString(staff)
         }
     }
 
-    suspend fun saveOutletId(outletId: String) {
-        dataStore.edit {
-            it[OUTLET_ID] = outletId
-        }
-    }
-
+    /** Outlet ID comes from the logged-in staff record (`userId`). */
     fun getOutletId(): Flow<String?> =
-        dataStore.data.map { preferences ->
-            preferences[OUTLET_ID]?.takeIf { it.isNotBlank() }
+        getLoggedInStaff().map { staff ->
+            staff?.userId?.takeIf { it.isNotBlank() }
         }
 
     suspend fun requireOutletId(): String =
-        getOutletId().firstOrNull().orEmpty()
+        getLoggedInStaff().firstOrNull()?.userId.orEmpty()
 
-    fun getLoggedInStaff(): Flow<StaffDetails?> {
-        return dataStore.data.map { preferences ->
+    fun getLoggedInStaff(): Flow<StaffDetails?> =
+        dataStore.data.map { preferences ->
             val jsonString = preferences[LOGGED_IN_STAFF]
             if (!jsonString.isNullOrEmpty()) {
                 try {
                     Json.decodeFromString<StaffDetails>(jsonString)
                 } catch (e: Exception) {
-                    null // Returns null if JSON parsing fails
+                    null
                 }
             } else {
-                null // Returns null if no staff is logged in
+                null
             }
         }
-    }
 
     val user = dataStore.data.map {
         it[USERNAME] ?: ""
     }
 
-
     companion object {
-        val USERNAME =
-            stringPreferencesKey("username")
-        val LOGGED_IN_STAFF =
-            stringPreferencesKey("logged_in_staff")
-        val OUTLET_ID =
-            stringPreferencesKey("outlet_id")
+        val USERNAME = stringPreferencesKey("username")
+        val LOGGED_IN_STAFF = stringPreferencesKey("logged_in_staff")
     }
 }

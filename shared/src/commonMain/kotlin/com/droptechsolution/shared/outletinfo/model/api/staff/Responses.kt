@@ -12,6 +12,7 @@ data class StaffDetails(
     val username: String,
     val password:String,
     val type: String,
+    val department: String? = null,
     val customised_position: String?,
     val online: String,
     val status: String,

@@ -8,6 +8,7 @@ import com.droptechsolution.shared.services.interactor.ServicesInteractor
 import com.droptechsolution.shared.services.models.DepartmentOverviewStatUi
 import com.droptechsolution.shared.services.models.ServiceRequestRowUi
 import com.droptechsolution.shared.ui.common.user.UserStorage
+import com.droptechsolution.shared.ui.common.user.toStaffType
 import com.droptechsolution.shared.ui.home.models.DashboardHeaderUi
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -42,7 +43,9 @@ class HomeViewModel(
                 if (staffDetails != null) {
                     _loginState.value = DashboardHeaderUi(staffDetails.name).also {
                         it.initials = staffDetails.name.take(2)
-                        it.role = staffDetails.customised_position ?: ""
+                        it.role = staffDetails.customised_position
+                            ?.takeIf { it.isNotBlank() }
+                            ?: staffDetails.type.toStaffType().defaultLabel()
                         it.status = staffDetails.status
                     }
                 }

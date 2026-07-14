@@ -27,6 +27,8 @@ import androidx.lifecycle.ViewModelStoreOwner
 import com.droptechsolution.shared.services.models.DepartmentOverviewCategory
 import com.droptechsolution.shared.services.models.ServiceRequestRowUi
 import com.droptechsolution.shared.services.views.ServiceRequestRow
+import com.droptechsolution.shared.ui.common.user.LocalUserSession
+import com.droptechsolution.shared.ui.common.user.UserSession
 import com.droptechsolution.shared.ui.tasks.presenter.TasksViewModel
 import com.droptechsolution.shared.ui.theme.BG_LIGHT
 import com.droptechsolution.shared.ui.theme.BLACK
@@ -48,8 +50,10 @@ fun TasksScreen(
         koinViewModel()
     }
 
-    LaunchedEffect(statusFilter, overviewCategory) {
-        viewModel.loadTasks(statusFilter, overviewCategory)
+    val userSession: UserSession? = LocalUserSession.current
+
+    LaunchedEffect(statusFilter, overviewCategory, userSession?.staffType) {
+        viewModel.loadTasks(statusFilter, overviewCategory, userSession)
     }
 
     val tasks by viewModel.tasks.collectAsState()
@@ -80,7 +84,8 @@ fun TasksScreen(
             text = if (filterLabel != null) {
                 "Filtered room requests"
             } else {
-                "Room requests and outlet services"
+                userSession?.staffTypeLabel?.let { "$it · Active & pending requests" }
+                    ?: "Active & pending requests"
             },
             color = TextMuted,
             fontSize = 15.sp,

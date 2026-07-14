@@ -3,15 +3,16 @@ package com.droptechsolution.shared.services.views
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CleaningServices
 import androidx.compose.material.icons.filled.LocalLaundryService
 import androidx.compose.material.icons.filled.RoomService
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -53,7 +54,7 @@ fun ServiceRequestRow(
             .clickable { onRowClick(item) }
             .padding(horizontal = 16.dp, vertical = 14.dp),
     ) {
-        val (iconRef, roomRef, titleRef, subtitleRef, badgeRef, actionRef) = createRefs()
+        val (iconRef, roomRef, titleRef, subtitleRef, rightColumnRef) = createRefs()
 
         TaskIconBox(
             icon = item.title.toTaskIcon(),
@@ -78,13 +79,19 @@ fun ServiceRequestRow(
             },
         )
 
-        TaskStatusBadge(
-            status = item.taskStatus,
-            modifier = Modifier.constrainAs(badgeRef) {
+        Column(
+            modifier = Modifier.constrainAs(rightColumnRef) {
                 end.linkTo(parent.end)
                 top.linkTo(parent.top)
             },
-        )
+            horizontalAlignment = Alignment.End,
+        ) {
+            TaskStatusBadge(status = item.taskStatus)
+            TaskActionButton(
+                action = item.action,
+                onClick = { onActionClick(item) },
+            )
+        }
 
         Text(
             text = item.title,
@@ -94,7 +101,7 @@ fun ServiceRequestRow(
             maxLines = 1,
             modifier = Modifier.constrainAs(titleRef) {
                 start.linkTo(iconRef.end, margin = 14.dp)
-                end.linkTo(badgeRef.start, margin = 8.dp)
+                end.linkTo(rightColumnRef.start, margin = 8.dp)
                 top.linkTo(parent.top, margin = 2.dp)
                 width = Dimension.fillToConstraints
             },
@@ -107,18 +114,9 @@ fun ServiceRequestRow(
             maxLines = 1,
             modifier = Modifier.constrainAs(subtitleRef) {
                 start.linkTo(titleRef.start)
-                end.linkTo(actionRef.start, margin = 8.dp)
+                end.linkTo(rightColumnRef.start, margin = 8.dp)
                 top.linkTo(titleRef.bottom, margin = 4.dp)
                 width = Dimension.fillToConstraints
-            },
-        )
-
-        TaskActionButton(
-            action = item.action,
-            onClick = { onActionClick(item) },
-            modifier = Modifier.constrainAs(actionRef) {
-                end.linkTo(parent.end)
-                bottom.linkTo(parent.bottom)
             },
         )
     }
@@ -157,12 +155,12 @@ private fun TaskStatusBadge(
         modifier = modifier
             .clip(RoundedCornerShape(8.dp))
             .background(background)
-            .padding(horizontal = 10.dp, vertical = 4.dp),
+            .padding(horizontal = 10.dp, vertical = 3.dp),
     ) {
         Text(
             text = label,
             color = textColor,
-            fontSize = 11.sp,
+            fontSize = 10.sp,
             fontWeight = FontWeight.Bold,
         )
     }
@@ -176,7 +174,7 @@ private fun TaskStatus.toBadgeStyle(): Triple<Color, Color, String> = when (this
     TaskStatus.HOLD -> Triple(Color(0xFFFFF4E8), Color(0xFFF59E0B), toLabel())
     TaskStatus.END -> Triple(Color(0xFFE8F5E9), Color(0xFF43A047), toLabel())
     TaskStatus.DONE -> Triple(Color(0xFFE8F5E9), Color(0xFF43A047), toLabel())
-    TaskStatus.CLOSE -> Triple(Color(0xFFE8F5E9), Color(0xFF43A047), toLabel())
+    TaskStatus.CLOSE -> Triple(Color(0xFFFFEBEE), Color(0xFFE53935), "Done")
     TaskStatus.REJECT -> Triple(Color(0xFFFFE8E8), Color(0xFFE53935), toLabel())
     TaskStatus.REOPEN -> Triple(Color(0xFFFFF0E0), Color(0xFFF59E0B), toLabel())
     TaskStatus.DEFAULT -> Triple(Color.Transparent, Color.Transparent, "")
@@ -192,21 +190,23 @@ private fun TaskActionButton(
 
     val (label, containerColor) = when (action) {
         TaskActionType.ACCEPT -> "ACCEPT" to MenusTeal
-        TaskActionType.START -> "START" to Color(0xFF22C55E)
+        TaskActionType.START -> "VIEW" to Color(0xFF22C55E)
         TaskActionType.NONE -> return
     }
 
-    Button(
-        onClick = onClick,
-        modifier = modifier,
-        shape = RoundedCornerShape(12.dp),
-        colors = ButtonDefaults.buttonColors(containerColor = containerColor),
-        contentPadding = ButtonDefaults.ContentPadding,
+    Box(
+        modifier = modifier
+            .padding(top = 8.dp)
+            .clip(RoundedCornerShape(10.dp))
+            .background(containerColor)
+            .clickable(onClick = onClick)
+            .padding(horizontal = 14.dp, vertical = 6.dp),
+        contentAlignment = Alignment.Center,
     ) {
         Text(
             text = label,
             color = Color.White,
-            fontSize = 13.sp,
+            fontSize = 11.sp,
             fontWeight = FontWeight.Bold,
         )
     }
@@ -235,9 +235,9 @@ private fun ServiceRequestRowPreview() {
                 roomNumber = "204",
                 title = "Towels Request",
                 subtitle = "22:14",
-                taskStatus = TaskStatus.NEW,
+                taskStatus = TaskStatus.CLOSE,
                 priority = TaskPriority.HIGH,
-                action = TaskActionType.ACCEPT,
+                action = TaskActionType.NONE,
             ),
         )
     }
@@ -256,8 +256,8 @@ private fun ServiceRequestRowAcceptedPreview() {
                 id = "2",
                 roomNumber = "305",
                 title = "Room Cleaning",
-                subtitle = "Accepted · Ready to start",
-                taskStatus = TaskStatus.ACCEPT,
+                subtitle = "In Progress",
+                taskStatus = TaskStatus.START,
                 priority = TaskPriority.MEDIUM,
                 action = TaskActionType.START,
             ),

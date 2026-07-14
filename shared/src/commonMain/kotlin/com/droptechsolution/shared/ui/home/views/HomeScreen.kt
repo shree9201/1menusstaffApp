@@ -39,6 +39,7 @@ import com.droptechsolution.shared.services.models.DepartmentOverviewStatUi
 import com.droptechsolution.shared.services.models.ServiceRequestRowUi
 import com.droptechsolution.shared.services.views.ActiveTasksSection
 import com.droptechsolution.shared.services.views.DepartmentOverviewSection
+import com.droptechsolution.shared.ui.common.user.LocalUserSession
 import com.droptechsolution.shared.ui.home.presenter.HomeViewModel
 import com.droptechsolution.shared.ui.theme.BG_LIGHT
 import com.droptechsolution.shared.ui.theme.MenusTeal
@@ -60,6 +61,7 @@ fun HomeScreen(
     }
 
     val userInfo = viewModel.loginState.collectAsState()
+    val userSession = LocalUserSession.current
     val activeTasks by viewModel.activeTasks.collectAsState()
     val activeTaskCount by viewModel.activeTaskCount.collectAsState()
     val overviewStats by viewModel.overviewStats.collectAsState()
@@ -75,7 +77,7 @@ fun HomeScreen(
     ) {
         DashboardHeaderRow(
             userName = userInfo.value.userName,
-            role = userInfo.value.role,
+            role = userSession?.staffTypeLabel?.takeIf { it.isNotBlank() } ?: userInfo.value.role,
             status = userInfo.value.status,
             initials = userInfo.value.initials.ifBlank { userInfo.value.userName.take(2).uppercase() },
         )

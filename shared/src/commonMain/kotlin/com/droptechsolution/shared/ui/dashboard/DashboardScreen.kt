@@ -4,10 +4,15 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import org.koin.compose.viewmodel.koinViewModel
+import com.droptechsolution.shared.ui.common.user.LocalUserSession
 import androidx.navigation.NavDestination.Companion.hasRoute
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -22,6 +27,7 @@ import com.droptechsolution.shared.navigation.TaskDetailRoute
 import com.droptechsolution.shared.navigation.TasksRoute
 import com.droptechsolution.shared.navigation.toRequestSource
 import com.droptechsolution.shared.services.views.RequestDetailsScreen
+import com.droptechsolution.shared.ui.dashboard.presenter.DashboardViewModel
 import com.droptechsolution.shared.ui.home.views.HomeScreen
 import com.droptechsolution.shared.ui.profile.ProfileScreen
 import com.droptechsolution.shared.ui.settings.SettingsScreen
@@ -32,7 +38,13 @@ import org.jetbrains.compose.ui.tooling.preview.Preview
 @Composable
 fun DashboardScreen(
     modifier: Modifier = Modifier,
+    viewModel: DashboardViewModel = koinViewModel(),
 ) {
+    LaunchedEffect(Unit) {
+        viewModel.loadSession()
+    }
+
+    val userSession by viewModel.userSession.collectAsState()
     val navController = rememberNavController()
     val dashboardNavigator = remember(navController) { DashboardNavigator(navController) }
     val navBackStackEntry by navController.currentBackStackEntryAsState()
@@ -48,7 +60,8 @@ fun DashboardScreen(
     val showBottomBar = currentDestination?.hasRoute(TaskDetailRoute::class) != true
 
     MenusTheme {
-        Scaffold(
+        CompositionLocalProvider(LocalUserSession provides userSession) {
+            Scaffold(
             modifier = modifier.fillMaxSize(),
             containerColor = Color.Transparent,
             bottomBar = {
@@ -108,6 +121,7 @@ fun DashboardScreen(
                     )
                 }
             }
+        }
         }
     }
 }

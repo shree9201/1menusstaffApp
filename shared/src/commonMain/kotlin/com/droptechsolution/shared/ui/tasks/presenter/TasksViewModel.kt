@@ -6,6 +6,7 @@ import com.droptechsolution.shared.network.NetworkResult
 import com.droptechsolution.shared.services.interactor.ServicesInteractor
 import com.droptechsolution.shared.services.models.DepartmentOverviewCategory
 import com.droptechsolution.shared.services.models.ServiceRequestRowUi
+import com.droptechsolution.shared.ui.common.user.UserSession
 import com.droptechsolution.shared.ui.common.user.UserStorage
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -32,14 +33,19 @@ class TasksViewModel(
     private val _overviewCategory = MutableStateFlow<DepartmentOverviewCategory?>(null)
     val overviewCategory = _overviewCategory.asStateFlow()
 
+    private val _userSession = MutableStateFlow<UserSession?>(null)
+    val userSession = _userSession.asStateFlow()
+
     private var loadJob: Job? = null
     private var lastLoadedKey: TasksLoadKey? = null
 
     fun loadTasks(
         statusFilter: String? = null,
         overviewCategoryKey: String? = null,
+        userSession: UserSession? = null,
         forceRefresh: Boolean = false,
     ) {
+        _userSession.value = userSession
         val loadKey = TasksLoadKey(statusFilter, overviewCategoryKey)
         updateFilterState(statusFilter, overviewCategoryKey)
 
@@ -90,6 +96,7 @@ class TasksViewModel(
         loadTasks(
             statusFilter = _statusFilter.value,
             overviewCategoryKey = _overviewCategory.value?.name,
+            userSession = _userSession.value,
             forceRefresh = true,
         )
     }

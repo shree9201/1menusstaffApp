@@ -82,16 +82,16 @@ fun String.toTaskStatus(): TaskStatus = when (uppercase()) {
 }
 
 fun TaskStatus.toLabel(): String = when (this) {
-    TaskStatus.NEW -> "NEW"
-    TaskStatus.ACCEPT -> "ACCEPT"
-    TaskStatus.ASSIGN -> "ASSIGN"
-    TaskStatus.START -> "START"
-    TaskStatus.HOLD -> "HOLD"
-    TaskStatus.END -> "END"
-    TaskStatus.DONE -> "DONE"
-    TaskStatus.CLOSE -> "CLOSE"
-    TaskStatus.REJECT -> "REJECT"
-    TaskStatus.REOPEN -> "REOPEN"
+    TaskStatus.NEW -> "New"
+    TaskStatus.ACCEPT -> "Accept"
+    TaskStatus.ASSIGN -> "Assign"
+    TaskStatus.START -> "start"
+    TaskStatus.HOLD -> "Hold"
+    TaskStatus.END -> "End"
+    TaskStatus.DONE -> "Done"
+    TaskStatus.CLOSE -> "Closed"
+    TaskStatus.REJECT -> "Reject"
+    TaskStatus.REOPEN -> "Reopen"
     TaskStatus.DEFAULT -> ""
 }
 

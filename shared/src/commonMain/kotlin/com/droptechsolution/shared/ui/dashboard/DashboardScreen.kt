@@ -22,7 +22,7 @@ import androidx.navigation.toRoute
 import com.droptechsolution.shared.navigation.DashboardNavigator
 import com.droptechsolution.shared.navigation.HomeRoute
 import com.droptechsolution.shared.navigation.ProfileRoute
-import com.droptechsolution.shared.navigation.SettingsRoute
+import com.droptechsolution.shared.navigation.StaffRoute
 import com.droptechsolution.shared.navigation.TaskDetailRoute
 import com.droptechsolution.shared.navigation.TasksRoute
 import com.droptechsolution.shared.navigation.toRequestSource
@@ -30,7 +30,7 @@ import com.droptechsolution.shared.services.views.RequestDetailsScreen
 import com.droptechsolution.shared.ui.dashboard.presenter.DashboardViewModel
 import com.droptechsolution.shared.ui.home.views.HomeScreen
 import com.droptechsolution.shared.ui.profile.ProfileScreen
-import com.droptechsolution.shared.ui.settings.SettingsScreen
+import com.droptechsolution.shared.ui.staff.views.StaffScreen
 import com.droptechsolution.shared.ui.tasks.views.TasksScreen
 import com.droptechsolution.shared.ui.theme.MenusTheme
 import org.jetbrains.compose.ui.tooling.preview.Preview
@@ -38,6 +38,7 @@ import org.jetbrains.compose.ui.tooling.preview.Preview
 @Composable
 fun DashboardScreen(
     modifier: Modifier = Modifier,
+    onLogout: () -> Unit = {},
     viewModel: DashboardViewModel = koinViewModel(),
 ) {
     LaunchedEffect(Unit) {
@@ -49,11 +50,12 @@ fun DashboardScreen(
     val dashboardNavigator = remember(navController) { DashboardNavigator(navController) }
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentDestination = navBackStackEntry?.destination
+    val visibleTabs = remember(userSession) { dashboardTabsFor(userSession) }
 
     val selectedTab = when {
         currentDestination?.hasRoute(TasksRoute::class) == true -> DashboardTab.Tasks
+        currentDestination?.hasRoute(StaffRoute::class) == true -> DashboardTab.Staff
         currentDestination?.hasRoute(ProfileRoute::class) == true -> DashboardTab.Profile
-        currentDestination?.hasRoute(SettingsRoute::class) == true -> DashboardTab.Settings
         else -> DashboardTab.Home
     }
 
@@ -68,12 +70,13 @@ fun DashboardScreen(
                 if (showBottomBar) {
                     DashboardBottomBar(
                         selectedTab = selectedTab,
+                        visibleTabs = visibleTabs,
                         onTabSelected = { tab ->
                             when (tab) {
                                 DashboardTab.Home -> dashboardNavigator.goToFeed()
                                 DashboardTab.Tasks -> dashboardNavigator.goToTasks()
+                                DashboardTab.Staff -> dashboardNavigator.goToStaff()
                                 DashboardTab.Profile -> dashboardNavigator.goToProfile()
-                                DashboardTab.Settings -> dashboardNavigator.goToSettings()
                             }
                         },
                     )
@@ -105,11 +108,14 @@ fun DashboardScreen(
                         viewModelStoreOwner = backStackEntry,
                     )
                 }
-                composable<ProfileRoute> {
-                    ProfileScreen()
+                composable<StaffRoute> {
+                    StaffScreen(modifier = Modifier.fillMaxSize())
                 }
-                composable<SettingsRoute> {
-                    SettingsScreen()
+                composable<ProfileRoute> {
+                    ProfileScreen(
+                        modifier = Modifier.fillMaxSize(),
+                        onLogout = onLogout,
+                    )
                 }
                 composable<TaskDetailRoute> { backStackEntry ->
                     val route = backStackEntry.toRoute<TaskDetailRoute>()

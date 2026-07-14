@@ -41,7 +41,7 @@ data class TaskDetailRoute(
 )
 
 @Serializable
-object ProfileRoute
+object StaffRoute
 
 @Serializable
-object SettingsRoute
+object ProfileRoute

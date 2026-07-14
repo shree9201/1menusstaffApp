@@ -32,6 +32,13 @@ class AppNavigator(
         }
     }
 
+    fun goToLoginClearingSession() {
+        navController.navigate(LandingRoute) {
+            popUpTo<DashboardRoute> { inclusive = true }
+            launchSingleTop = true
+        }
+    }
+
     fun navigateUp() {
         navController.navigateUp()
     }

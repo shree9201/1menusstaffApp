@@ -84,7 +84,7 @@ class HomeViewModel @Inject constructor(private val tokenService: ITokenService)
             when (val staff = staffApi.staffList(StaffListRequest("5"))) {
                 is NetworkResult.Success -> {
                     Log.v("HomeViewModel", "$staff")
-                    _staffs.emit(staff.data.firstOrNull()?.value ?: emptyList())
+                    _staffs.emit(staff.data.value)
                 }
                 is NetworkResult.Error -> Log.e("HomeViewModel", staff.error.userMessage)
             }

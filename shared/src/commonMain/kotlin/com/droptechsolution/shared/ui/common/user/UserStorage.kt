@@ -54,6 +54,13 @@ class UserStorage(
         it[USERNAME] ?: ""
     }
 
+    suspend fun clearSession() {
+        dataStore.edit { preferences ->
+            preferences.remove(LOGGED_IN_STAFF)
+            preferences.remove(USERNAME)
+        }
+    }
+
     companion object {
         val USERNAME = stringPreferencesKey("username")
         val LOGGED_IN_STAFF = stringPreferencesKey("logged_in_staff")

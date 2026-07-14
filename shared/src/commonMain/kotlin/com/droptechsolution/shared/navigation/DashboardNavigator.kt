@@ -38,7 +38,7 @@ class DashboardNavigator(
 
     fun goToProfile() = navigateToTab(ProfileRoute)
 
-    fun goToSettings() = navigateToTab(SettingsRoute)
+    fun goToStaff() = navigateToTab(StaffRoute)
 
     fun goToTaskDetail(task: ServiceRequestRowUi) {
         navController.navigate(

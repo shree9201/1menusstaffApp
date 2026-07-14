@@ -10,7 +10,7 @@ class StaffAPI(
 ) {
     suspend fun staffList(
         request: StaffListRequest,
-    ): NetworkResult<List<StaffResponse>> =
+    ): NetworkResult<StaffResponse> =
         networkClient.post("${URN.SERVER}${URN.STAFF_LIST}") {
             setBody(request)
         }

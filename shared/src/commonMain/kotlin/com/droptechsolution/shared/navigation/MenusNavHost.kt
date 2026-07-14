@@ -75,7 +75,9 @@ fun MenusNavHost(
             }
 
             composable<DashboardRoute> {
-                DashboardScreen()
+                DashboardScreen(
+                    onLogout = appNavigator::goToLoginClearingSession,
+                )
             }
         }
     }

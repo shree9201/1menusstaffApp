@@ -89,6 +89,7 @@ fun DashboardScreen(
                         statusFilter = route.statusFilter,
                         overviewCategory = route.overviewCategory,
                         onTaskClick = dashboardNavigator::goToTaskDetail,
+                        viewModelStoreOwner = backStackEntry,
                     )
                 }
                 composable<ProfileRoute> {

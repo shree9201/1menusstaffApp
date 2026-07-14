@@ -72,12 +72,12 @@ private fun DepartmentOverviewStatCard(
 ) {
     Column(
         modifier = modifier
-            .defaultMinSize(minHeight = 88.dp)
-            .shadow(elevation = 6.dp, shape = RoundedCornerShape(16.dp), clip = false)
-            .clip(RoundedCornerShape(16.dp))
+            .defaultMinSize(minHeight = 0.dp)
+            .shadow(elevation = 6.dp, shape = RoundedCornerShape(14.dp), clip = false)
+            .clip(RoundedCornerShape(14.dp))
             .background(Color.White)
             .clickable(onClick = onClick)
-            .padding(vertical = 12.dp, horizontal = 6.dp),
+            .padding(vertical = 10.dp, horizontal = 6.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center,
     ) {
@@ -112,10 +112,10 @@ private fun DepartmentOverviewCategory.toCountColor(): Color = when (this) {
 private fun DepartmentOverviewSectionPreview() {
     DepartmentOverviewSection(
         stats = listOf(
-            DepartmentOverviewStatUi(DepartmentOverviewCategory.PENDING, "Pending", 18, listOf("NEW")),
-            DepartmentOverviewStatUi(DepartmentOverviewCategory.IN_PROGRESS, "In Progress", 12, listOf("ACCEPT", "START")),
-            DepartmentOverviewStatUi(DepartmentOverviewCategory.COMPLETED, "Completed", 56, listOf("CLOSE")),
-            DepartmentOverviewStatUi(DepartmentOverviewCategory.DELAYED, "Delayed", 3, listOf("ESCALATED")),
+            DepartmentOverviewStatUi(DepartmentOverviewCategory.PENDING, "Pending", 0, listOf("NEW")),
+            DepartmentOverviewStatUi(DepartmentOverviewCategory.IN_PROGRESS, "In Progress", 0, listOf("ACCEPT", "START")),
+            DepartmentOverviewStatUi(DepartmentOverviewCategory.COMPLETED, "Completed", 0, listOf("CLOSE")),
+            DepartmentOverviewStatUi(DepartmentOverviewCategory.DELAYED, "Delayed", 0, listOf("ESCALATED")),
         ),
         modifier = Modifier.padding(16.dp).background(Color(0xFFEEF3F8)),
     )

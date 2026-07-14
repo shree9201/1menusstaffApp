@@ -18,6 +18,7 @@ import androidx.compose.ui.unit.sp
 import com.droptechsolution.shared.services.models.ServiceRequestRowUi
 import com.droptechsolution.shared.services.models.TaskActionType
 import com.droptechsolution.shared.services.models.TaskPriority
+import com.droptechsolution.shared.services.models.TaskStatus
 import com.droptechsolution.shared.ui.theme.BLACK
 import com.droptechsolution.shared.ui.theme.MenusTeal
 import org.jetbrains.compose.ui.tooling.preview.Preview
@@ -65,16 +66,16 @@ fun ActiveTasksHeader(
         verticalAlignment = Alignment.CenterVertically,
     ) {
         Text(
-            text = "Active Tasks ($taskCount)",
+            text = "Live Tasks",
             color = BLACK,
-            fontSize = 22.sp,
+            fontSize = 20.sp,
             fontWeight = FontWeight.Bold,
         )
 
         Text(
             text = "View All",
             color = MenusTeal,
-            fontSize = 16.sp,
+            fontSize = 14.sp,
             fontWeight = FontWeight.SemiBold,
             modifier = Modifier
                 .clickable(onClick = onViewAllClick)
@@ -93,6 +94,7 @@ private fun ActiveTasksSectionPreview() {
                 roomNumber = "204",
                 title = "Towels Request",
                 subtitle = "22:14",
+                taskStatus = TaskStatus.NEW,
                 priority = TaskPriority.HIGH,
                 action = TaskActionType.ACCEPT,
             ),
@@ -101,6 +103,7 @@ private fun ActiveTasksSectionPreview() {
                 roomNumber = "305",
                 title = "Room Cleaning",
                 subtitle = "Accepted · Ready to start",
+                taskStatus = TaskStatus.ACCEPT,
                 priority = TaskPriority.MEDIUM,
                 action = TaskActionType.START,
             ),

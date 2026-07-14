@@ -11,6 +11,20 @@ enum class TaskPriority {
     LOW,
 }
 
+enum class TaskStatus {
+    NEW,
+    ACCEPT,
+    ASSIGN,
+    START,
+    HOLD,
+    END,
+    DONE,
+    CLOSE,
+    REJECT,
+    REOPEN,
+    DEFAULT
+}
+
 enum class TaskActionType {
     ACCEPT,
     START,
@@ -22,21 +36,22 @@ data class ServiceRequestRowUi(
     val roomNumber: String,
     val title: String,
     val subtitle: String,
+    val taskStatus: TaskStatus,
     val priority: TaskPriority,
     val action: TaskActionType,
     val source: RequestSource = RequestSource.ROOM,
 )
 
 fun RoomRequest.toRowUi(priority: TaskPriority = TaskPriority.MEDIUM): ServiceRequestRowUi {
-    println("RoomRequest.toRowUi with title ${id} ${title}")
     return ServiceRequestRowUi(
         id = id,
         roomNumber = roomId,
         title = displayTitle(title),
         subtitle = status.toTaskSubtitle(createdDate),
+        taskStatus = status.toTaskStatus(),
         priority = priority,
         action = status.toTaskAction(),
-        source = RequestSource.ROOM
+        source = RequestSource.ROOM,
     )
 }
 
@@ -46,10 +61,39 @@ fun OutletService.toRowUi(): ServiceRequestRowUi =
         roomNumber = "Box $boxId",
         title = title,
         subtitle = information.ifBlank { actionBy }.ifBlank { "Outlet service" },
+        taskStatus = status.toTaskStatus(),
         priority = priority.toTaskPriority(),
         action = TaskActionType.NONE,
-        source = RequestSource.OUTLET
+        source = RequestSource.OUTLET,
     )
+
+fun String.toTaskStatus(): TaskStatus = when (uppercase()) {
+    "NEW" -> TaskStatus.NEW
+    "ACCEPT", "ACCEPTED" -> TaskStatus.ACCEPT
+    "ASSIGN", "ASSIGNED" -> TaskStatus.ASSIGN
+    "START", "STARTED" -> TaskStatus.START
+    "HOLD", "PAUSE", "PAUSED" -> TaskStatus.HOLD
+    "END" -> TaskStatus.END
+    "DONE" -> TaskStatus.DONE
+    "CLOSE", "CLOSED" -> TaskStatus.CLOSE
+    "REJECT", "REJECTED" -> TaskStatus.REJECT
+    "REOPEN", "REOPENED" -> TaskStatus.REOPEN
+    else -> TaskStatus.DEFAULT
+}
+
+fun TaskStatus.toLabel(): String = when (this) {
+    TaskStatus.NEW -> "NEW"
+    TaskStatus.ACCEPT -> "ACCEPT"
+    TaskStatus.ASSIGN -> "ASSIGN"
+    TaskStatus.START -> "START"
+    TaskStatus.HOLD -> "HOLD"
+    TaskStatus.END -> "END"
+    TaskStatus.DONE -> "DONE"
+    TaskStatus.CLOSE -> "CLOSE"
+    TaskStatus.REJECT -> "REJECT"
+    TaskStatus.REOPEN -> "REOPEN"
+    TaskStatus.DEFAULT -> ""
+}
 
 fun String.toTaskPriority(): TaskPriority = when (lowercase()) {
     "high" -> TaskPriority.HIGH

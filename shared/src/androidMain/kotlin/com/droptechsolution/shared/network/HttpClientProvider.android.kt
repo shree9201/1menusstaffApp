@@ -4,7 +4,8 @@ import android.util.Log
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.okhttp.OkHttp
 import io.ktor.client.plugins.api.createClientPlugin
-import io.ktor.client.statement.request
+import okhttp3.RequestBody.Companion.toRequestBody
+import okio.Buffer
 import java.security.cert.X509Certificate
 import javax.net.ssl.SSLContext
 import javax.net.ssl.TrustManager
@@ -13,31 +14,40 @@ import javax.net.ssl.X509TrustManager
 private const val INTERCEPTOR_TAG = "CustomInterceptor"
 
 val CustomInterceptorPlugin = createClientPlugin("CustomInterceptorPlugin") {
-
     onRequest { request, _ ->
         request.headers.append("Token", "Qk7NwXbP4mLrYgZ8HsDc2VeT9uAjFi3KoEpMn5RxCt")
         request.headers.append("Id", "2")
-        Log.d(
-            INTERCEPTOR_TAG,
-            "Request: ${request.method.value} ${request.url.buildString()}",
-        )
-    }
-
-    // Log status only — do not read the body here or ContentNegotiation cannot deserialize.
-    onResponse { response ->
-        Log.d(INTERCEPTOR_TAG, "Response received for: ${response.request.url}")
-        Log.d(INTERCEPTOR_TAG, "Response status: ${response.status}")
     }
 }
 
-private fun okhttp3.OkHttpClient.Builder.installResponseBodyLogging() {
+private fun okhttp3.OkHttpClient.Builder.installNetworkLogging() {
     addInterceptor { chain ->
-        val response = chain.proceed(chain.request())
-        val responseBody = response.body
-        if (responseBody != null) {
+        val originalRequest = chain.request()
+        Log.d(INTERCEPTOR_TAG, "Request: ${originalRequest.method} ${originalRequest.url}")
+
+        val requestToSend = originalRequest.body?.let { requestBody ->
+            val buffer = Buffer()
+            requestBody.writeTo(buffer)
+            val bodyText = buffer.readUtf8()
+            Log.d(INTERCEPTOR_TAG, "Request body: $bodyText")
+
+            val rebuiltBody = bodyText.toRequestBody(requestBody.contentType())
+            originalRequest.newBuilder()
+                .method(originalRequest.method, rebuiltBody)
+                .build()
+        } ?: run {
+            Log.d(INTERCEPTOR_TAG, "Request body: (empty)")
+            originalRequest
+        }
+
+        val response = chain.proceed(requestToSend)
+        Log.d(INTERCEPTOR_TAG, "Response status: ${response.code}")
+
+        response.body?.let { responseBody ->
             val bodyText = response.peekBody(Long.MAX_VALUE).string()
             Log.d(INTERCEPTOR_TAG, "Response body: $bodyText")
         }
+
         response
     }
 }
@@ -50,7 +60,7 @@ actual object HttpClientProvider {
 
         engine {
             config {
-                installResponseBodyLogging()
+                installNetworkLogging()
 
                 val trustAllCerts = arrayOf<TrustManager>(
                     object : X509TrustManager {

@@ -29,6 +29,8 @@ import androidx.constraintlayout.compose.Dimension
 import com.droptechsolution.shared.services.models.ServiceRequestRowUi
 import com.droptechsolution.shared.services.models.TaskActionType
 import com.droptechsolution.shared.services.models.TaskPriority
+import com.droptechsolution.shared.services.models.TaskStatus
+import com.droptechsolution.shared.services.models.toLabel
 import com.droptechsolution.shared.ui.theme.BG_LIGHT
 import com.droptechsolution.shared.ui.theme.BLACK
 import com.droptechsolution.shared.ui.theme.MenusTeal
@@ -58,15 +60,15 @@ fun ServiceRequestRow(
             modifier = Modifier.constrainAs(iconRef) {
                 start.linkTo(parent.start)
                 top.linkTo(parent.top)
-                width = Dimension.value(52.dp)
-                height = Dimension.value(52.dp)
+                width = Dimension.value(46.dp)
+                height = Dimension.value(46.dp)
             },
         )
 
         Text(
             text = item.roomNumber,
             color = TextMuted,
-            fontSize = 13.sp,
+            fontSize = 12.sp,
             fontWeight = FontWeight.Medium,
             modifier = Modifier.constrainAs(roomRef) {
                 top.linkTo(iconRef.bottom, margin = 6.dp)
@@ -76,8 +78,8 @@ fun ServiceRequestRow(
             },
         )
 
-        TaskPriorityBadge(
-            priority = item.priority,
+        TaskStatusBadge(
+            status = item.taskStatus,
             modifier = Modifier.constrainAs(badgeRef) {
                 end.linkTo(parent.end)
                 top.linkTo(parent.top)
@@ -143,15 +145,13 @@ private fun TaskIconBox(
 }
 
 @Composable
-private fun TaskPriorityBadge(
-    priority: TaskPriority,
+private fun TaskStatusBadge(
+    status: TaskStatus,
     modifier: Modifier = Modifier,
 ) {
-    val (background, textColor, label) = when (priority) {
-        TaskPriority.HIGH -> Triple(Color(0xFFFFE8E8), Color(0xFFE53935), "HIGH")
-        TaskPriority.MEDIUM -> Triple(Color(0xFFFFF0E0), Color(0xFFF59E0B), "MEDIUM")
-        TaskPriority.LOW -> Triple(Color(0xFFE8F5E9), Color(0xFF43A047), "LOW")
-    }
+    if (status == TaskStatus.DEFAULT) return
+
+    val (background, textColor, label) = status.toBadgeStyle()
 
     Box(
         modifier = modifier
@@ -166,6 +166,20 @@ private fun TaskPriorityBadge(
             fontWeight = FontWeight.Bold,
         )
     }
+}
+
+private fun TaskStatus.toBadgeStyle(): Triple<Color, Color, String> = when (this) {
+    TaskStatus.NEW -> Triple(Color(0xFFFFF7E6), Color(0xFFD97706), toLabel())
+    TaskStatus.ACCEPT -> Triple(Color(0xFFE6F7F1), MenusTeal, toLabel())
+    TaskStatus.ASSIGN -> Triple(Color(0xFFE8F1FF), Color(0xFF2563EB), toLabel())
+    TaskStatus.START -> Triple(Color(0xFFE8F1FF), Color(0xFF2563EB), toLabel())
+    TaskStatus.HOLD -> Triple(Color(0xFFFFF4E8), Color(0xFFF59E0B), toLabel())
+    TaskStatus.END -> Triple(Color(0xFFE8F5E9), Color(0xFF43A047), toLabel())
+    TaskStatus.DONE -> Triple(Color(0xFFE8F5E9), Color(0xFF43A047), toLabel())
+    TaskStatus.CLOSE -> Triple(Color(0xFFE8F5E9), Color(0xFF43A047), toLabel())
+    TaskStatus.REJECT -> Triple(Color(0xFFFFE8E8), Color(0xFFE53935), toLabel())
+    TaskStatus.REOPEN -> Triple(Color(0xFFFFF0E0), Color(0xFFF59E0B), toLabel())
+    TaskStatus.DEFAULT -> Triple(Color.Transparent, Color.Transparent, "")
 }
 
 @Composable
@@ -221,6 +235,7 @@ private fun ServiceRequestRowPreview() {
                 roomNumber = "204",
                 title = "Towels Request",
                 subtitle = "22:14",
+                taskStatus = TaskStatus.NEW,
                 priority = TaskPriority.HIGH,
                 action = TaskActionType.ACCEPT,
             ),
@@ -242,6 +257,7 @@ private fun ServiceRequestRowAcceptedPreview() {
                 roomNumber = "305",
                 title = "Room Cleaning",
                 subtitle = "Accepted · Ready to start",
+                taskStatus = TaskStatus.ACCEPT,
                 priority = TaskPriority.MEDIUM,
                 action = TaskActionType.START,
             ),

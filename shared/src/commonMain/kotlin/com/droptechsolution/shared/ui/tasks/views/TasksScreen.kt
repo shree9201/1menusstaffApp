@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.CircularProgressIndicator
@@ -22,6 +23,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.ViewModelStoreOwner
 import com.droptechsolution.shared.services.models.DepartmentOverviewCategory
 import com.droptechsolution.shared.services.models.ServiceRequestRowUi
 import com.droptechsolution.shared.services.views.ServiceRequestRow
@@ -38,8 +40,14 @@ fun TasksScreen(
     overviewCategory: String? = null,
     onTaskClick: (ServiceRequestRowUi) -> Unit,
     modifier: Modifier = Modifier,
-    viewModel: TasksViewModel = koinViewModel(),
+    viewModelStoreOwner: ViewModelStoreOwner? = null,
 ) {
+    val viewModel: TasksViewModel = if (viewModelStoreOwner != null) {
+        koinViewModel(viewModelStoreOwner = viewModelStoreOwner)
+    } else {
+        koinViewModel()
+    }
+
     LaunchedEffect(statusFilter, overviewCategory) {
         viewModel.loadTasks(statusFilter, overviewCategory)
     }
@@ -56,13 +64,13 @@ fun TasksScreen(
         modifier = modifier
             .fillMaxSize()
             .background(BG_LIGHT)
-            .verticalScroll(rememberScrollState())
+//            .verticalScroll(rememberScrollState())
             .padding(24.dp),
     ) {
         Text(
-            text = if (filterLabel != null) "$filterLabel (${tasks.size})" else "Tasks (${tasks.size})",
+            text = if (filterLabel != null) "$filterLabel (${tasks.size})" else "Tasks",
             color = BLACK,
-            fontSize = 26.sp,
+            fontSize = 24.sp,
             fontWeight = FontWeight.Bold,
         )
 
@@ -110,12 +118,18 @@ fun TasksScreen(
                 )
             }
             else -> {
-                Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+//                Column(verticalArrangement = Arrangement.spacedBy(12.dp))
+                LazyColumn(verticalArrangement = Arrangement.spacedBy(8.dp),
+                    modifier = Modifier.fillMaxSize(),)
+                {
+
                     tasks.forEach { task ->
-                        ServiceRequestRow(
-                            item = task,
-                            onRowClick = onTaskClick,
-                        )
+                        item {
+                            ServiceRequestRow(
+                                item = task,
+                                onRowClick = onTaskClick,
+                            )
+                        }
                     }
                 }
             }

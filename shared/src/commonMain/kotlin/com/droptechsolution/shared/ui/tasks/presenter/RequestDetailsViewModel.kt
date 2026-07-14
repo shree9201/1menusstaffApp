@@ -62,7 +62,6 @@ class RequestDetailsViewModel(
                 val result = servicesInteractor.loadRequestDetails(
                     outletId = outletId,
                     requestId = requestId,
-                    source = source,
                 )
             ) {
                 is NetworkResult.Success -> {

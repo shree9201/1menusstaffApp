@@ -7,7 +7,6 @@ import com.droptechsolution.shared.outletinfo.model.api.staff.StaffDetails
 import com.droptechsolution.shared.services.models.RequestAction
 import com.droptechsolution.shared.services.models.RequestDetailsRequest
 import com.droptechsolution.shared.services.models.RequestDetailsUi
-import com.droptechsolution.shared.services.models.RequestSource
 import com.droptechsolution.shared.services.models.RoomRequest
 import com.droptechsolution.shared.services.models.RoomRequestFilter
 import com.droptechsolution.shared.services.models.RoomRequestsRequest
@@ -21,7 +20,6 @@ import com.droptechsolution.shared.services.models.isSuccessful
 import com.droptechsolution.shared.services.models.mergeTaskRows
 import com.droptechsolution.shared.services.models.statusFilter
 import com.droptechsolution.shared.services.models.toDepartmentOverviewStats
-import com.droptechsolution.shared.services.models.toDetailsUi
 import com.droptechsolution.shared.services.models.toDomain
 import com.droptechsolution.shared.services.models.toDomainList
 import com.droptechsolution.shared.services.models.toTaskRows
@@ -129,33 +127,17 @@ class ServicesInteractor(
     suspend fun loadRequestDetails(
         outletId: String,
         requestId: String,
-        source: RequestSource,
-    ): NetworkResult<RequestDetailsUi> {
-        val outletServices = when (val outletResult = loadOutletServices(outletId)) {
-            is NetworkResult.Success -> outletResult.data
-            is NetworkResult.Error -> emptyList()
-        }
-
-        if (source == RequestSource.OUTLET) {
-            val service = outletServices.find { it.id == requestId }
-                ?: return NetworkResult.Error(NetworkError.Unknown("Service not found"))
-            return NetworkResult.Success(service.toDetailsUi())
-        }
-
-        return when (val result = servicesAPI.getRequestDetails(RequestDetailsRequest(outletId, requestId))) {
+    ): NetworkResult<RequestDetailsUi> =
+        when (val result = servicesAPI.getRequestDetails(RequestDetailsRequest(outletId, requestId))) {
             is NetworkResult.Success -> {
                 if (result.data.isSuccessful()) {
-                    val domain = result.data.toDomain()
-                    val outletService = domain.serviceDetails
-                        ?: outletServices.find { it.serviceId == domain.request.serviceId }
-                    NetworkResult.Success(domain.toUi(outletService))
+                    NetworkResult.Success(result.data.toDomain().toUi())
                 } else {
                     NetworkResult.Error(NetworkError.Unknown("Unable to load request details"))
                 }
             }
             is NetworkResult.Error -> result
         }
-    }
 
     suspend fun updateRequest(
         outletId: String,
@@ -180,16 +162,9 @@ class ServicesInteractor(
                 }
                 val embeddedDetails = result.data.requestDetails
                 if (embeddedDetails != null && embeddedDetails.isSuccessful()) {
-                    val domain = embeddedDetails.toDomain()
-                    val outletServices = when (val outletResult = loadOutletServices(outletId)) {
-                        is NetworkResult.Success -> outletResult.data
-                        is NetworkResult.Error -> emptyList()
-                    }
-                    val outletService = domain.serviceDetails
-                        ?: outletServices.find { it.serviceId == domain.request.serviceId }
-                    NetworkResult.Success(domain.toUi(outletService))
+                    NetworkResult.Success(embeddedDetails.toDomain().toUi())
                 } else {
-                    loadRequestDetails(outletId, requestId, RequestSource.ROOM)
+                    loadRequestDetails(outletId, requestId)
                 }
             }
             is NetworkResult.Error -> result

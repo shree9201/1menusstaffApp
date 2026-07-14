@@ -7,6 +7,7 @@ import com.droptechsolution.shared.services.interactor.ServicesInteractor
 import com.droptechsolution.shared.services.models.DepartmentOverviewCategory
 import com.droptechsolution.shared.services.models.ServiceRequestRowUi
 import com.droptechsolution.shared.ui.common.user.UserStorage
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
@@ -31,16 +32,26 @@ class TasksViewModel(
     private val _overviewCategory = MutableStateFlow<DepartmentOverviewCategory?>(null)
     val overviewCategory = _overviewCategory.asStateFlow()
 
+    private var loadJob: Job? = null
+    private var lastLoadedKey: TasksLoadKey? = null
+
     fun loadTasks(
         statusFilter: String? = null,
         overviewCategoryKey: String? = null,
+        forceRefresh: Boolean = false,
     ) {
-        _statusFilter.value = statusFilter
-        _overviewCategory.value = overviewCategoryKey?.let { key ->
-            DepartmentOverviewCategory.entries.firstOrNull { it.name == key }
+        val loadKey = TasksLoadKey(statusFilter, overviewCategoryKey)
+        updateFilterState(statusFilter, overviewCategoryKey)
+
+        if (!forceRefresh && loadKey == lastLoadedKey && _tasks.value.isNotEmpty()) {
+            return
+        }
+        if (loadJob?.isActive == true && loadKey == lastLoadedKey) {
+            return
         }
 
-        viewModelScope.launch {
+        loadJob?.cancel()
+        loadJob = viewModelScope.launch {
             _isLoading.value = true
             _errorMessage.value = null
 
@@ -64,6 +75,7 @@ class TasksViewModel(
             ) {
                 is NetworkResult.Success -> {
                     _tasks.value = result.data.rows
+                    lastLoadedKey = loadKey
                 }
                 is NetworkResult.Error -> {
                     _tasks.value = emptyList()
@@ -74,10 +86,33 @@ class TasksViewModel(
         }
     }
 
+    fun refreshTasks() {
+        loadTasks(
+            statusFilter = _statusFilter.value,
+            overviewCategoryKey = _overviewCategory.value?.name,
+            forceRefresh = true,
+        )
+    }
+
+    private fun updateFilterState(
+        statusFilter: String?,
+        overviewCategoryKey: String?,
+    ) {
+        _statusFilter.value = statusFilter
+        _overviewCategory.value = overviewCategoryKey?.let { key ->
+            DepartmentOverviewCategory.entries.firstOrNull { it.name == key }
+        }
+    }
+
     private fun DepartmentOverviewCategory.toFilterStatuses(): List<String> = when (this) {
         DepartmentOverviewCategory.PENDING -> listOf("NEW")
         DepartmentOverviewCategory.IN_PROGRESS -> listOf("ACCEPT", "START")
         DepartmentOverviewCategory.COMPLETED -> listOf("CLOSE")
         DepartmentOverviewCategory.DELAYED -> listOf("ESCALATED")
     }
+
+    private data class TasksLoadKey(
+        val statusFilter: String?,
+        val overviewCategoryKey: String?,
+    )
 }

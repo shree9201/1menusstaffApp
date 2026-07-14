@@ -161,7 +161,7 @@ fun DashboardHeaderRow(
                 Text(
                     text = "Hi $userName 👋",
                     color = Color(0xFF1C2B4A),
-                    fontSize = 26.sp,
+                    fontSize = 24.sp,
                     fontWeight = FontWeight.Bold,
                 )
 

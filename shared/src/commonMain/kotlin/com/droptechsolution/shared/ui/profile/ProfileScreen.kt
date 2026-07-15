@@ -23,13 +23,18 @@ import androidx.compose.material.icons.filled.BarChart
 import androidx.compose.material.icons.filled.Groups
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.Star
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -66,6 +71,41 @@ fun ProfileScreen(
     }
 
     val uiState by viewModel.uiState.collectAsState()
+    var showLogoutConfirmation by remember { mutableStateOf(false) }
+
+    if (showLogoutConfirmation) {
+        AlertDialog(
+            onDismissRequest = { showLogoutConfirmation = false },
+            title = {
+                Text(
+                    text = "Logout",
+                    color = BLACK,
+                    fontWeight = FontWeight.Bold,
+                )
+            },
+            text = {
+                Text(
+                    text = "Are you sure you want to logout?",
+                    color = TextMuted,
+                )
+            },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        showLogoutConfirmation = false
+                        viewModel.logout()
+                    },
+                ) {
+                    Text(text = "Yes", color = MenusPrimary)
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showLogoutConfirmation = false }) {
+                    Text(text = "No", color = TextMuted)
+                }
+            },
+        )
+    }
 
     Column(
         modifier = modifier
@@ -102,7 +142,7 @@ fun ProfileScreen(
         ProfileMenuItem(
             title = "Logout",
             subtitle = "Sign out of manager account",
-            onClick = viewModel::logout,
+            onClick = { showLogoutConfirmation = true },
         )
         Spacer(modifier = Modifier.height(24.dp))
     }

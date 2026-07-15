@@ -7,7 +7,7 @@ data class StaffDetails(
     val id : String,
     val title: String?,
     val userId: String,
-    val tableIds: String,
+    val tableIds: String?,
     val name: String,
     val username: String,
     val password:String,

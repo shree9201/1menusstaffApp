@@ -43,13 +43,14 @@ data class ServiceRequestRowUi(
 )
 
 fun RoomRequest.toRowUi(priority: TaskPriority = TaskPriority.MEDIUM): ServiceRequestRowUi {
+    val service = serviceDetails.firstOrNull()
     return ServiceRequestRowUi(
         id = id,
         roomNumber = roomId,
-        title = displayTitle(title),
+        title = displayTitle(),
         subtitle = status.toTaskSubtitle(createdDate),
         taskStatus = status.toTaskStatus(),
-        priority = priority,
+        priority = service?.priority?.toTaskPriority() ?: priority,
         action = status.toTaskAction(),
         source = RequestSource.ROOM,
     )
@@ -101,10 +102,12 @@ fun String.toTaskPriority(): TaskPriority = when (lowercase()) {
     else -> TaskPriority.MEDIUM
 }
 
-fun RoomRequest.displayTitle(serviceTitle: String? = null): String =
-    title.ifBlank { serviceTitle.orEmpty() }
+fun RoomRequest.displayTitle(): String {
+    val serviceTitle = serviceDetails.firstOrNull()?.title.orEmpty()
+    return serviceTitle.ifBlank { title }
         .ifBlank { note.trim().lineSequence().firstOrNull().orEmpty() }
         .ifBlank { "Service Request" }
+}
 
 fun String.toTaskAction(): TaskActionType = when (uppercase()) {
     "NEW" -> TaskActionType.ACCEPT

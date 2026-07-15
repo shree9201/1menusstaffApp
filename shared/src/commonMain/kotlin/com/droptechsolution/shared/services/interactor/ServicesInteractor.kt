@@ -73,12 +73,6 @@ class ServicesInteractor(
             is NetworkResult.Error -> result
         }
 
-    suspend fun loadOutletServices(outletId: String): NetworkResult<List<OutletService>> =
-        when (val result = servicesAPI.getOutletServices(ServicesRequest(outletId))) {
-            is NetworkResult.Success -> mapResponse(result.data.status, result.data.toDomainList())
-            is NetworkResult.Error -> result
-        }
-
     suspend fun loadAllTasks(
         outletId: String,
         activeOnly: Boolean = false,
@@ -90,35 +84,27 @@ class ServicesInteractor(
             statusFilters.isNotEmpty() -> loadRoomRequestsForStatuses(outletId, statusFilters)
             else -> loadRoomRequests(outletId, filters)
         }
-        val outletResult = if (statusFilter.isNullOrBlank() && statusFilters.isEmpty()) {
-            loadOutletServices(outletId)
-        } else {
-            NetworkResult.Success(emptyList())
-        }
 
         val roomRequests = when (roomResult) {
             is NetworkResult.Success -> roomResult.data
             is NetworkResult.Error -> return roomResult
         }
-        val outletServices = when (outletResult) {
-            is NetworkResult.Success -> outletResult.data
-            is NetworkResult.Error -> emptyList()
-        }
 
         val rows = if (statusFilter.isNullOrBlank() && statusFilters.isEmpty()) {
             mergeTaskRows(
                 roomRequests = roomRequests,
-                outletServices = outletServices,
+                outletServices = emptyList(),
+                includeOutletServices = false,
                 activeOnly = activeOnly,
             )
         } else {
-            roomRequests.toTaskRows(outletServices)
+            roomRequests.toTaskRows()
         }
 
         return NetworkResult.Success(
             TaskListData(
                 roomRequests = roomRequests,
-                outletServices = outletServices,
+                outletServices = emptyList(),
                 rows = rows,
             ),
         )

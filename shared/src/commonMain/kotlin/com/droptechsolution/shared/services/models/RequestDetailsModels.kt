@@ -39,7 +39,7 @@ fun RequestDetailsResponse.toDomain(): RequestDetails {
     return RequestDetails(
         request = requestWithMetrics,
         activities = activity.map { it.toDomain() },
-        serviceDetails = serviceDetails?.toDomain(),
+        serviceDetails = serviceDetails?.toDomain() ?: requestWithMetrics.serviceDetails.firstOrNull(),
     )
 }
 

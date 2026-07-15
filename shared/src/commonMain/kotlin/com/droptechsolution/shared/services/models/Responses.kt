@@ -37,4 +37,5 @@ data class OutletServiceDto(
     val status: String,
     val created_date: String,
     val updated_date: String,
+    val icon: String? = null,
 )

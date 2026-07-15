@@ -44,8 +44,8 @@ enum class RequestStatusDisplay {
 }
 
 fun RequestDetails.toUi(outletService: OutletService? = null): RequestDetailsUi {
-    val service = serviceDetails ?: outletService
-    val displayTitle = request.displayTitle(service?.title)
+    val service = serviceDetails ?: request.serviceDetails.firstOrNull() ?: outletService
+    val displayTitle = request.displayTitle()
     val priority = service?.priority?.toTaskPriority() ?: TaskPriority.MEDIUM
     val department = service?.actionBy.toDepartmentLabel()
     val reminderDuration = service.toReminderDurationLabel()

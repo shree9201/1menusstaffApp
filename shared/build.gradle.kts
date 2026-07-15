@@ -102,6 +102,7 @@ kotlin {
             implementation(libs.koin.compose)
             implementation(libs.koin.compose.viewmodel)
             implementation(libs.constraintlayout.compose.multiplatform)
+            implementation("br.com.devsrsouza.compose.icons:font-awesome:1.1.0")
 
         }
 

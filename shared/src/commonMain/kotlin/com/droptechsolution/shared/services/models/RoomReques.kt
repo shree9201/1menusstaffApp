@@ -27,6 +27,7 @@ data class RoomRequestDto(
     val guestMobile: String? = null,
     val guestCode: String? = null,
     val points: String,
+    val serviceDetails: List<OutletServiceDto> = emptyList(),
     val timeMetrics: TimeMetricsDto? = null,
 )
 

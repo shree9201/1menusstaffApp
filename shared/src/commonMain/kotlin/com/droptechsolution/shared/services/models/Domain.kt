@@ -16,6 +16,7 @@ data class RoomRequest(
     val startTime: String = "",
     val endTime: String = "",
     val timeMetrics: TimeMetrics,
+    val serviceDetails: List<OutletService> = emptyList(),
 )
 
 data class TimeMetrics(
@@ -42,6 +43,7 @@ data class OutletService(
     val status: String,
     val createdDate: String,
     val updatedDate: String,
+    val icon: String = "",
 )
 
 data class RequestDetails(
@@ -80,6 +82,7 @@ fun RoomRequestDto.toDomain(): RoomRequest {
             totalTimeFormatted = "",
             activitiesCount = 0,
         ),
+        serviceDetails = serviceDetails.map { it.toDomain() },
     )
 }
 
@@ -110,6 +113,7 @@ fun OutletServiceDto.toDomain(): OutletService {
         status = status,
         createdDate = created_date,
         updatedDate = updated_date,
+        icon = icon.orEmpty(),
     )
 }
 

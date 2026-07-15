@@ -52,7 +52,7 @@ fun ServiceRequestRow(
             .clickable { onRowClick(item) }
             .padding(horizontal = 16.dp, vertical = 14.dp),
     ) {
-        val (iconRef, roomRef, titleRef, subtitleRef, rightColumnRef) = createRefs()
+        val (roomNoRef,iconRef, roomRef, titleRef, subtitleRef, rightColumnRef) = createRefs()
 
         TaskIconBox(
             icon = item.title.toTaskIcon(),
@@ -92,15 +92,28 @@ fun ServiceRequestRow(
         }
 
         Text(
-            text = item.title,
+            text = "Room ${item.roomNumber}",
             color = BLACK,
             fontSize = 18.sp,
             fontWeight = FontWeight.Bold,
             maxLines = 1,
-            modifier = Modifier.constrainAs(titleRef) {
+            modifier = Modifier.constrainAs(roomNoRef) {
                 start.linkTo(iconRef.end, margin = 14.dp)
                 end.linkTo(rightColumnRef.start, margin = 8.dp)
                 top.linkTo(parent.top, margin = 2.dp)
+                width = Dimension.fillToConstraints
+            },
+        )
+
+        Text(
+            text = item.title,
+            color = TextMuted,
+            fontSize = 14.sp,
+            maxLines = 1,
+            modifier = Modifier.constrainAs(titleRef) {
+                start.linkTo(roomNoRef.start)
+                end.linkTo(rightColumnRef.start, margin = 8.dp)
+                top.linkTo(roomNoRef.bottom, margin = 4.dp)
                 width = Dimension.fillToConstraints
             },
         )
@@ -231,7 +244,7 @@ private fun ServiceRequestRowPreview() {
             item = ServiceRequestRowUi(
                 id = "1",
                 roomNumber = "204",
-                title = "Towels Request",
+                title = "I want to check out",
                 subtitle = "22:14",
                 taskStatus = TaskStatus.CLOSE,
                 priority = TaskPriority.HIGH,

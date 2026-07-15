@@ -19,9 +19,12 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.toRoute
+import com.droptechsolution.shared.navigation.ContactItSupportRoute
 import com.droptechsolution.shared.navigation.DashboardNavigator
+import com.droptechsolution.shared.navigation.HelpSupportRoute
 import com.droptechsolution.shared.navigation.HomeRoute
 import com.droptechsolution.shared.navigation.ProfileRoute
+import com.droptechsolution.shared.navigation.ReportOperationalIssueRoute
 import com.droptechsolution.shared.navigation.StaffRoute
 import com.droptechsolution.shared.navigation.TaskDetailRoute
 import com.droptechsolution.shared.navigation.TasksRoute
@@ -30,6 +33,9 @@ import com.droptechsolution.shared.services.views.RequestDetailsScreen
 import com.droptechsolution.shared.ui.dashboard.presenter.DashboardViewModel
 import com.droptechsolution.shared.ui.home.views.HomeScreen
 import com.droptechsolution.shared.ui.profile.ProfileScreen
+import com.droptechsolution.shared.ui.profile.help.ContactItSupportScreen
+import com.droptechsolution.shared.ui.profile.help.HelpSupportScreen
+import com.droptechsolution.shared.ui.profile.help.ReportOperationalIssueScreen
 import com.droptechsolution.shared.ui.staff.views.StaffScreen
 import com.droptechsolution.shared.ui.tasks.views.TasksScreen
 import com.droptechsolution.shared.ui.theme.MenusTheme
@@ -59,7 +65,13 @@ fun DashboardScreen(
         else -> DashboardTab.Home
     }
 
-    val showBottomBar = currentDestination?.hasRoute(TaskDetailRoute::class) != true
+    val showBottomBar = when {
+        currentDestination?.hasRoute(HomeRoute::class) == true -> true
+        currentDestination?.hasRoute(TasksRoute::class) == true -> true
+        currentDestination?.hasRoute(StaffRoute::class) == true -> true
+        currentDestination?.hasRoute(ProfileRoute::class) == true -> true
+        else -> false
+    }
 
     MenusTheme {
         CompositionLocalProvider(LocalUserSession provides userSession) {
@@ -115,6 +127,27 @@ fun DashboardScreen(
                     ProfileScreen(
                         modifier = Modifier.fillMaxSize(),
                         onLogout = onLogout,
+                        onHelpSupport = dashboardNavigator::goToHelpSupport,
+                    )
+                }
+                composable<HelpSupportRoute> {
+                    HelpSupportScreen(
+                        modifier = Modifier.fillMaxSize(),
+                        onBack = dashboardNavigator::navigateUp,
+                        onReportOperationalIssue = dashboardNavigator::goToReportOperationalIssue,
+                        onContactItSupport = dashboardNavigator::goToContactItSupport,
+                    )
+                }
+                composable<ReportOperationalIssueRoute> {
+                    ReportOperationalIssueScreen(
+                        modifier = Modifier.fillMaxSize(),
+                        onBack = dashboardNavigator::navigateUp,
+                    )
+                }
+                composable<ContactItSupportRoute> {
+                    ContactItSupportScreen(
+                        modifier = Modifier.fillMaxSize(),
+                        onBack = dashboardNavigator::navigateUp,
                     )
                 }
                 composable<TaskDetailRoute> { backStackEntry ->

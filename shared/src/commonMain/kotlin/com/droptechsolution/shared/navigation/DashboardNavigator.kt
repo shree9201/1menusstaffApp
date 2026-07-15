@@ -38,6 +38,18 @@ class DashboardNavigator(
 
     fun goToProfile() = navigateToTab(ProfileRoute)
 
+    fun goToHelpSupport() {
+        navController.navigate(HelpSupportRoute)
+    }
+
+    fun goToReportOperationalIssue() {
+        navController.navigate(ReportOperationalIssueRoute)
+    }
+
+    fun goToContactItSupport() {
+        navController.navigate(ContactItSupportRoute)
+    }
+
     fun goToStaff() = navigateToTab(StaffRoute)
 
     fun goToTaskDetail(task: ServiceRequestRowUi) {

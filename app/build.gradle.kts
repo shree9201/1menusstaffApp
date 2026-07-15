@@ -53,7 +53,8 @@ dependencies {
     implementation(libs.androidx.material3)
 
     implementation(platform(libs.firebase.bom))
-    implementation(libs.firebase.messaging)
+
+    implementation("com.onesignal:OneSignal:[5.6.1, 5.9.99]")
 
     //Data Store
     implementation(libs.androidx.datastore.pref)

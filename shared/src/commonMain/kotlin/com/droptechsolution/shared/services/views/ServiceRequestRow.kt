@@ -30,6 +30,8 @@ import com.droptechsolution.shared.services.models.TaskActionType
 import com.droptechsolution.shared.services.models.TaskPriority
 import com.droptechsolution.shared.services.models.TaskStatus
 import com.droptechsolution.shared.services.models.toLabel
+import com.droptechsolution.shared.ui.faicon.FontAwesomeLigatureIcon
+import com.droptechsolution.shared.ui.faicon.toFontAwesomeHtmlClass
 import com.droptechsolution.shared.ui.theme.BG_LIGHT
 import com.droptechsolution.shared.ui.theme.BLACK
 import com.droptechsolution.shared.ui.theme.MenusTeal
@@ -55,7 +57,8 @@ fun ServiceRequestRow(
         val (roomNoRef,iconRef, roomRef, titleRef, subtitleRef, rightColumnRef) = createRefs()
 
         TaskIconBox(
-            icon = item.title.toTaskIcon(),
+            iconHtml = item.iconHtml,
+            fallbackTitle = item.title,
             modifier = Modifier.constrainAs(iconRef) {
                 start.linkTo(parent.start)
                 top.linkTo(parent.top)
@@ -135,21 +138,33 @@ fun ServiceRequestRow(
 
 @Composable
 private fun TaskIconBox(
-    icon: ImageVector,
+    iconHtml: String?,
+    fallbackTitle: String,
     modifier: Modifier = Modifier,
 ) {
+    val htmlClass = iconHtml.toFontAwesomeHtmlClass()
+
     Box(
         modifier = modifier
             .clip(RoundedCornerShape(14.dp))
             .background(BG_LIGHT),
         contentAlignment = Alignment.Center,
     ) {
-        Icon(
-            imageVector = icon,
-            contentDescription = null,
-            tint = MenusTeal,
-            modifier = Modifier.padding(10.dp),
-        )
+        if (htmlClass != null && FontAwesomeLigatureIcon(
+                htmlClass = htmlClass,
+                size = 22.dp,
+                tint = MenusTeal,
+            )
+        ) {
+            // Font Awesome glyph rendered.
+        } else {
+            Icon(
+                imageVector = fallbackTitle.toTaskIcon(),
+                contentDescription = null,
+                tint = MenusTeal,
+                modifier = Modifier.padding(10.dp),
+            )
+        }
     }
 }
 
@@ -249,6 +264,7 @@ private fun ServiceRequestRowPreview() {
                 taskStatus = TaskStatus.CLOSE,
                 priority = TaskPriority.HIGH,
                 action = TaskActionType.NONE,
+                iconHtml = """<i class="fal fa-luggage-cart"></i>""",
             ),
         )
     }

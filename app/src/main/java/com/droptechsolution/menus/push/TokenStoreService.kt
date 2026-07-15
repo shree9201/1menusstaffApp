@@ -4,16 +4,16 @@ import android.content.Context
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
-import kotlinx.coroutines.flow.Flow
+import com.droptechsolution.shared.push.PushTokenProvider
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.map
 import javax.inject.Inject
 
-class TokenStoreService @Inject constructor(private val context: Context,
-    private val pushService : PushMessagingService
-    )  : ITokenService {
+class TokenStoreService @Inject constructor(
+    private val context: Context,
+) : ITokenService {
     val Context.dataStore by preferencesDataStore(name = "token_prefs")
 
     companion object {
@@ -21,24 +21,25 @@ class TokenStoreService @Inject constructor(private val context: Context,
     }
 
     private val _token = MutableStateFlow("")
-     val token: StateFlow<String> = _token
+    val token: StateFlow<String> = _token
+
     override suspend fun getPushToken(): String? {
         return context.dataStore.data.map { prefs -> prefs[PUSH_TOKEN] }.firstOrNull()
     }
 
-    override suspend fun setPushToken(token:String) {
+    override suspend fun setPushToken(token: String) {
         context.dataStore.edit { prefs ->
             prefs[PUSH_TOKEN] = token
         }
     }
 
     override suspend fun requestToken(): String? {
-        return pushService.getPushToken()
+        return PushTokenProvider().getPushToken()
     }
 }
 
-interface ITokenService{
-    suspend fun getPushToken() : String?
+interface ITokenService {
+    suspend fun getPushToken(): String?
     suspend fun setPushToken(token: String)
-    suspend fun requestToken():String?
+    suspend fun requestToken(): String?
 }

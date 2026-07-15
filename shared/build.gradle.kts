@@ -4,6 +4,7 @@ plugins {
     alias(libs.plugins.kotlin.serialization)
     alias(libs.plugins.compose.multiplatform)
     alias(libs.plugins.compose.compiler)
+    alias(libs.plugins.kotlin.cocoapods)
 //    id("org.jetbrains.compose")
 //    id("org.jetbrains.kotlin.plugin.compose")
 }
@@ -35,6 +36,17 @@ kotlin {
             instrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         }
     }
+
+//    cocoapods {
+//        summary = "1Menus shared KMP module"
+//        homepage = "https://github.com/droptechsolution/1Menus"
+//        version = "1.0"
+//        ios.deploymentTarget = "14.0"
+//        pod("OneSignalXCFramework") {
+//            version = "~> 5.0"
+//            linkOnly = true
+//        }
+//    }
 
     // For iOS targets, this is also where you should
     // configure native binary output. For more information, see:
@@ -74,7 +86,7 @@ kotlin {
     sourceSets {
 
         commonMain.dependencies {
-
+            implementation(compose.components.resources)
             implementation(libs.androidx.lifecycle.viewmodel)
             implementation(libs.androidx.lifecycle.viewmodel.compose)
             implementation(libs.androidx.navigation.compose)
@@ -108,8 +120,8 @@ kotlin {
 
         androidMain.dependencies {
             implementation("io.ktor:ktor-client-okhttp:2.3.7")
-            implementation("com.google.firebase:firebase-messaging-ktx:24.1.2")
-            implementation( "androidx.lifecycle:lifecycle-viewmodel-ktx:2.5.0") // or higher
+            implementation("com.onesignal:OneSignal:[5.6.1, 5.9.99]")
+            implementation("androidx.lifecycle:lifecycle-viewmodel-ktx:2.5.0")
             implementation(libs.koin.android)
             implementation("androidx.work:work-runtime-ktx:2.9.1")
         }

@@ -8,6 +8,7 @@ import com.droptechsolution.shared.ui.common.user.StaffType
 import com.droptechsolution.shared.ui.common.user.UserStorage
 import com.droptechsolution.shared.ui.common.user.toStaffType
 import com.droptechsolution.shared.ui.common.user.toUserSession
+import com.droptechsolution.shared.push.OneSignalWrapper
 import com.droptechsolution.shared.ui.profile.models.ProfileUiState
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -59,6 +60,7 @@ class ProfileViewModel(
 
     fun logout() {
         viewModelScope.launch {
+            OneSignalWrapper.removeExternalId()
             userStorage.clearSession()
             _logoutEvents.emit(Unit)
         }

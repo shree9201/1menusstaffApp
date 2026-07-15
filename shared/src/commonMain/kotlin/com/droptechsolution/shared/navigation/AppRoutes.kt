@@ -45,3 +45,12 @@ object StaffRoute
 
 @Serializable
 object ProfileRoute
+
+@Serializable
+object HelpSupportRoute
+
+@Serializable
+object ReportOperationalIssueRoute
+
+@Serializable
+object ContactItSupportRoute

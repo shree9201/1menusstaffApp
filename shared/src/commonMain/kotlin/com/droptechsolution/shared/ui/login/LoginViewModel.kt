@@ -7,6 +7,7 @@ import com.droptechsolution.shared.network.NetworkResult
 import com.droptechsolution.shared.outletinfo.model.api.OutletApi
 import com.droptechsolution.shared.outletinfo.model.api.staff.StaffLoginRequest
 import com.droptechsolution.shared.platform
+import com.droptechsolution.shared.push.OneSignalWrapper
 import com.droptechsolution.shared.ui.common.user.UserStorage
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -35,7 +36,7 @@ class LoginViewModel(
         viewModelScope.launch {
             _isLoading.value = true
             _errorMessage.value = ""
-            val pushToken = pushTokenProvider.requestToken().orEmpty()
+            val playerId = pushTokenProvider.requestToken().orEmpty()
 
             when (
                 val result = outletApi.staffLogin(
@@ -43,7 +44,7 @@ class LoginViewModel(
                         outletId = outletCode,
                         username = username,
                         password = password,
-                        deviceId = pushToken,
+                        deviceId = playerId,
                         deviceType = platform().lowercase(),
                         userType = userType,
                     )
@@ -55,6 +56,7 @@ class LoginViewModel(
                         _errorMessage.value = "Invalid credentials"
                     } else {
                         userStorage.saveStaffUser(response.value)
+                        OneSignalWrapper.setExternalId(response.value.id)
                         loadMasterData()
                         _loginState.value = true
                     }

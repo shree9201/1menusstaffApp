@@ -58,6 +58,7 @@ import org.koin.compose.viewmodel.koinViewModel
 fun ProfileScreen(
     modifier: Modifier = Modifier,
     onLogout: () -> Unit = {},
+    onHelpSupport: () -> Unit = {},
     viewModel: ProfileViewModel = koinViewModel(),
 ) {
     LaunchedEffect(Unit) {
@@ -137,6 +138,7 @@ fun ProfileScreen(
         ProfileMenuItem(
             title = "Help & Support",
             subtitle = "Raise issue to admin/support team",
+            onClick = onHelpSupport,
         )
         Spacer(modifier = Modifier.height(12.dp))
         ProfileMenuItem(

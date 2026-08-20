@@ -1,6 +1,8 @@
 package com.droptechsolution.shared.services.interactor
 
 import com.droptechsolution.shared.network.NetworkError
+import com.droptechsolution.shared.network.NetworkLogger
+import com.droptechsolution.shared.network.NETWORK_LOG_TAG
 import com.droptechsolution.shared.network.NetworkResult
 import com.droptechsolution.shared.services.models.OutletService
 import com.droptechsolution.shared.outletinfo.model.api.staff.StaffDetails
@@ -153,7 +155,17 @@ class ServicesInteractor(
                     loadRequestDetails(outletId, requestId)
                 }
             }
-            is NetworkResult.Error -> result
+            is NetworkResult.Error -> {
+                if (result.error is NetworkError.Serialization) {
+                    NetworkLogger.e(
+                        tag = NETWORK_LOG_TAG,
+                        message = "updateRequest parse failed; reloading request details for $requestId",
+                    )
+                    loadRequestDetails(outletId, requestId)
+                } else {
+                    result
+                }
+            }
         }
     }
 

@@ -2,6 +2,7 @@ package com.droptechsolution.shared.ui.tasks.presenter
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.droptechsolution.shared.network.NetworkError
 import com.droptechsolution.shared.network.NetworkResult
 import com.droptechsolution.shared.services.interactor.ServicesInteractor
 import com.droptechsolution.shared.services.models.RequestAction
@@ -9,10 +10,13 @@ import com.droptechsolution.shared.services.models.RequestDetailsUi
 import com.droptechsolution.shared.services.models.RequestSource
 import com.droptechsolution.shared.services.sla.ServiceSlaProgressUi
 import com.droptechsolution.shared.services.sla.ServiceSlaTracker
+import com.droptechsolution.shared.ui.common.GENERIC_ERROR_MESSAGE
 import com.droptechsolution.shared.ui.common.user.UserStorage
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.isActive
@@ -35,6 +39,9 @@ class RequestDetailsViewModel(
 
     private val _errorMessage = MutableStateFlow<String?>(null)
     val errorMessage = _errorMessage.asStateFlow()
+
+    private val _toastEvents = MutableSharedFlow<String>(extraBufferCapacity = 1)
+    val toastEvents = _toastEvents.asSharedFlow()
 
     private val _slaProgress = MutableStateFlow<ServiceSlaProgressUi?>(null)
     val slaProgress = _slaProgress.asStateFlow()
@@ -71,7 +78,7 @@ class RequestDetailsViewModel(
                     _details.value = null
                     _slaProgress.value = null
                     stopSlaTicker()
-                    _errorMessage.value = result.error.userMessage
+                    showError(result.error)
                 }
             }
             _isLoading.value = false
@@ -121,9 +128,7 @@ class RequestDetailsViewModel(
                         -> Unit
                     }
                 }
-                is NetworkResult.Error -> {
-                    _errorMessage.value = result.error.userMessage
-                }
+                is NetworkResult.Error -> showActionError(result.error)
             }
             _isUpdating.value = false
         }
@@ -195,6 +200,14 @@ class RequestDetailsViewModel(
             workStartedAt = details.workStartedAt,
             statusDisplay = details.statusDisplay,
         )
+    }
+
+    private fun showError(error: NetworkError) {
+        _errorMessage.value = error.userFacingMessage()
+    }
+
+    private suspend fun showActionError(error: NetworkError) {
+        _toastEvents.emit(error.userFacingMessage())
     }
 
     override fun onCleared() {

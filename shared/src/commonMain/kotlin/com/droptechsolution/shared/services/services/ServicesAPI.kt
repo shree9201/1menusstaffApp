@@ -1,6 +1,9 @@
 package com.droptechsolution.shared.services.services
 
 import com.droptechsolution.shared.network.NetworkClient
+import com.droptechsolution.shared.network.NetworkError
+import com.droptechsolution.shared.network.NetworkLogger
+import com.droptechsolution.shared.network.NETWORK_LOG_TAG
 import com.droptechsolution.shared.network.NetworkResult
 import com.droptechsolution.shared.network.URN
 import com.droptechsolution.shared.services.models.OutletServicesResponse
@@ -12,7 +15,9 @@ import com.droptechsolution.shared.services.models.ServiceStatusCountResponse
 import com.droptechsolution.shared.services.models.ServicesRequest
 import com.droptechsolution.shared.services.models.UpdateRequestBody
 import com.droptechsolution.shared.services.models.UpdateRequestResponse
+import com.droptechsolution.shared.services.models.parseUpdateRequestResponse
 import io.ktor.client.request.setBody
+import kotlinx.serialization.SerializationException
 
 interface IServicesAPI {
     suspend fun getRoomRequests(request: RoomRequestsRequest): NetworkResult<RoomRequestsResponse>
@@ -50,8 +55,27 @@ class ServicesAPI(
     override suspend fun updateRequest(
         request: UpdateRequestBody,
     ): NetworkResult<UpdateRequestResponse> =
-        networkClient.post("${URN.SERVER}${URN.UPDATE_REQUEST}") {
+        when (val result = networkClient.postForText("${URN.SERVER}${URN.UPDATE_REQUEST}") {
             setBody(request)
+        }) {
+            is NetworkResult.Success -> {
+                try {
+                    NetworkResult.Success(parseUpdateRequestResponse(result.data))
+                } catch (e: SerializationException) {
+                    NetworkLogger.e(
+                        tag = NETWORK_LOG_TAG,
+                        message = "Failed to parse updateRequest response: ${e.message}. Body: ${result.data}",
+                        throwable = e,
+                    )
+                    NetworkResult.Error(
+                        NetworkError.Serialization(
+                            message = e.message ?: "Failed to parse response",
+                            cause = e,
+                        )
+                    )
+                }
+            }
+            is NetworkResult.Error -> result
         }
 
     override suspend fun getServiceStatusCount(

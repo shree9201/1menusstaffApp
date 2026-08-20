@@ -1,5 +1,7 @@
 package com.droptechsolution.shared.services.models
 
+import com.droptechsolution.shared.network.ApiStatusSerializer
+import com.droptechsolution.shared.network.isApiSuccess
 import kotlinx.serialization.Serializable
 
 @Serializable
@@ -20,15 +22,15 @@ data class RequestActivityDto(
 
 @Serializable
 data class RequestDetailsResponse(
-    val status: String,
+    @Serializable(with = ApiStatusSerializer::class)
+    val status: String = "true",
     val value: RoomRequestDto,
     val serviceDetails: OutletServiceDto? = null,
     val activity: List<RequestActivityDto> = emptyList(),
     val timeMetrics: TimeMetricsDto? = null,
 )
 
-fun RequestDetailsResponse.isSuccessful(): Boolean =
-    status.equals("true", ignoreCase = true) || status == "1"
+fun RequestDetailsResponse.isSuccessful(): Boolean = status.isApiSuccess()
 
 fun RequestDetailsResponse.toDomain(): RequestDetails {
     val request = value.toDomain()

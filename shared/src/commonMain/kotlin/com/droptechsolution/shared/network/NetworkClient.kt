@@ -42,6 +42,16 @@ class NetworkClient(
         }
     }
 
+    suspend fun postForText(
+        url: String,
+        block: HttpRequestBuilder.() -> Unit = {},
+    ): NetworkResult<String> = executeForText {
+        httpClient.post(url) {
+            contentType(ContentType.Application.Json)
+            block()
+        }
+    }
+
     suspend inline fun <reified T> put(
         url: String,
         crossinline block: HttpRequestBuilder.() -> Unit = {},
@@ -68,6 +78,11 @@ class NetworkClient(
         NetworkResult.Success(request().body())
     } catch (e: ResponseException) {
         val responseBody = runCatching { e.response.bodyAsText() }.getOrNull()
+        NetworkLogger.e(
+            tag = NETWORK_LOG_TAG,
+            message = "HTTP ${e.response.status.value} for ${T::class.simpleName}: $responseBody",
+            throwable = e,
+        )
         NetworkResult.Error(
             NetworkError.Http(
                 statusCode = e.response.status.value,
@@ -76,6 +91,11 @@ class NetworkClient(
             )
         )
     } catch (e: SerializationException) {
+        NetworkLogger.e(
+            tag = NETWORK_LOG_TAG,
+            message = "Failed to parse response for ${T::class.simpleName}: ${e.message}",
+            throwable = e,
+        )
         NetworkResult.Error(
             NetworkError.Serialization(
                 message = e.message ?: "Failed to parse response",
@@ -83,6 +103,44 @@ class NetworkClient(
             )
         )
     } catch (e: Exception) {
+        NetworkLogger.e(
+            tag = NETWORK_LOG_TAG,
+            message = "Network request failed: ${e.message}",
+            throwable = e,
+        )
+        NetworkResult.Error(
+            NetworkError.Network(
+                message = e.message ?: "Network request failed",
+                cause = e,
+            )
+        )
+    }
+
+    suspend fun executeForText(
+        request: suspend () -> HttpResponse,
+    ): NetworkResult<String> = try {
+        val response = request()
+        NetworkResult.Success(response.bodyAsText())
+    } catch (e: ResponseException) {
+        val responseBody = runCatching { e.response.bodyAsText() }.getOrNull()
+        NetworkLogger.e(
+            tag = NETWORK_LOG_TAG,
+            message = "HTTP ${e.response.status.value}: $responseBody",
+            throwable = e,
+        )
+        NetworkResult.Error(
+            NetworkError.Http(
+                statusCode = e.response.status.value,
+                message = e.message ?: e.response.status.description,
+                body = responseBody,
+            )
+        )
+    } catch (e: Exception) {
+        NetworkLogger.e(
+            tag = NETWORK_LOG_TAG,
+            message = "Network request failed: ${e.message}",
+            throwable = e,
+        )
         NetworkResult.Error(
             NetworkError.Network(
                 message = e.message ?: "Network request failed",

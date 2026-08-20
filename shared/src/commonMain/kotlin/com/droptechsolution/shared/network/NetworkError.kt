@@ -1,7 +1,17 @@
 package com.droptechsolution.shared.network
 
+import com.droptechsolution.shared.ui.common.GENERIC_ERROR_MESSAGE
+
 sealed interface NetworkError {
     val userMessage: String
+
+    fun userFacingMessage(): String = when (this) {
+        is Serialization,
+        is Http,
+        is Network,
+        is Unknown,
+        -> GENERIC_ERROR_MESSAGE
+    }
 
     data class Http(
         val statusCode: Int,

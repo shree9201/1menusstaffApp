@@ -49,6 +49,7 @@ import com.droptechsolution.shared.services.models.RequestDetailsUi
 import com.droptechsolution.shared.services.models.RequestSource
 import com.droptechsolution.shared.services.models.RequestStatusDisplay
 import com.droptechsolution.shared.services.models.TimelineStepUi
+import com.droptechsolution.shared.ui.common.ToastMessageEffect
 import com.droptechsolution.shared.ui.tasks.presenter.RequestDetailsViewModel
 import com.droptechsolution.shared.ui.theme.BG_LIGHT
 import com.droptechsolution.shared.ui.theme.BLACK
@@ -90,12 +91,13 @@ fun RequestDetailsScreen(
     val scrollState = rememberScrollState()
     val scope = rememberCoroutineScope()
 
-    Box(
-        modifier = modifier
-            .fillMaxSize()
-            .background(BG_LIGHT),
-    ) {
-        when {
+    ToastMessageEffect(messages = viewModel.toastEvents) {
+        Box(
+            modifier = modifier
+                .fillMaxSize()
+                .background(BG_LIGHT),
+        ) {
+            when {
             isLoading -> {
                 Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                     CircularProgressIndicator(color = MenusTeal)
@@ -138,44 +140,36 @@ fun RequestDetailsScreen(
                             onAction = viewModel::performAction,
                         )
                     }
-                    errorMessage?.let { message ->
-                        Spacer(modifier = Modifier.height(12.dp))
-                        Text(
-                            text = message,
-                            color = ActionRejectText,
-                            fontSize = 14.sp,
-                            modifier = Modifier.fillMaxWidth(),
-                        )
-                    }
                     Spacer(modifier = Modifier.height(88.dp))
                 }
             }
-        }
+            }
 
-        IconButton(
-            onClick = onBack,
-            modifier = Modifier
-                .padding(start = 8.dp, top = 8.dp)
-                .align(Alignment.TopStart),
-        ) {
-            Icon(
-                imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                contentDescription = "Back",
-                tint = BLACK,
-            )
-        }
-
-        if (details != null) {
-            FloatingActionButton(
-                onClick = { scope.launch { scrollState.animateScrollTo(0) } },
+            IconButton(
+                onClick = onBack,
                 modifier = Modifier
-                    .align(Alignment.BottomEnd)
-                    .padding(end = 20.dp, bottom = 20.dp),
-                containerColor = MenusTeal,
-                contentColor = Color.White,
-                shape = CircleShape,
+                    .padding(start = 8.dp, top = 8.dp)
+                    .align(Alignment.TopStart),
             ) {
-                Icon(Icons.Default.KeyboardArrowUp, contentDescription = "Scroll to top")
+                Icon(
+                    imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                    contentDescription = "Back",
+                    tint = BLACK,
+                )
+            }
+
+            if (details != null) {
+                FloatingActionButton(
+                    onClick = { scope.launch { scrollState.animateScrollTo(0) } },
+                    modifier = Modifier
+                        .align(Alignment.BottomEnd)
+                        .padding(end = 20.dp, bottom = 20.dp),
+                    containerColor = MenusTeal,
+                    contentColor = Color.White,
+                    shape = CircleShape,
+                ) {
+                    Icon(Icons.Default.KeyboardArrowUp, contentDescription = "Scroll to top")
+                }
             }
         }
     }

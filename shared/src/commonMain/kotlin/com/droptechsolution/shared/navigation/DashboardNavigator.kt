@@ -50,6 +50,10 @@ class DashboardNavigator(
         navController.navigate(ContactItSupportRoute)
     }
 
+    fun goToMyAttendance() {
+        navController.navigate(MyAttendanceRoute)
+    }
+
     fun goToStaff() = navigateToTab(StaffRoute)
 
     fun goToTaskDetail(task: ServiceRequestRowUi) {

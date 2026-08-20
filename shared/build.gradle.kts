@@ -37,16 +37,16 @@ kotlin {
         }
     }
 
-//    cocoapods {
-//        summary = "1Menus shared KMP module"
-//        homepage = "https://github.com/droptechsolution/1Menus"
-//        version = "1.0"
-//        ios.deploymentTarget = "14.0"
-//        pod("OneSignalXCFramework") {
-//            version = "~> 5.0"
-//            linkOnly = true
-//        }
-//    }
+    cocoapods {
+        summary = "1Menus shared KMP module"
+        homepage = "https://github.com/droptechsolution/1Menus"
+        version = "1.0.0"
+        ios.deploymentTarget = "14.0"
+        pod("OneSignalXCFramework") {
+            version = "~> 5.0"
+            linkOnly = true
+        }
+    }
 
     // For iOS targets, this is also where you should
     // configure native binary output. For more information, see:

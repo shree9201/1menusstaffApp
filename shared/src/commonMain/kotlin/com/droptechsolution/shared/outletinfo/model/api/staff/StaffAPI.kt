@@ -14,4 +14,11 @@ class StaffAPI(
         networkClient.post("${URN.SERVER}${URN.STAFF_LIST}") {
             setBody(request)
         }
+
+    suspend fun staffAttendances(
+        request: StaffAttendancesRequest,
+    ): NetworkResult<StaffAttendancesResponse> =
+        networkClient.post("${URN.SERVER}${URN.STAFF_ATTENDANCES}") {
+            setBody(request)
+        }
 }

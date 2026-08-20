@@ -54,3 +54,6 @@ object ReportOperationalIssueRoute
 
 @Serializable
 object ContactItSupportRoute
+
+@Serializable
+object MyAttendanceRoute

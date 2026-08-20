@@ -5,6 +5,8 @@ import com.droptechsolution.shared.network.NetworkResult
 import com.droptechsolution.shared.network.URN
 import com.droptechsolution.shared.outletinfo.model.api.staff.NotificationRequest
 import com.droptechsolution.shared.outletinfo.model.api.staff.StaffLoginRequest
+import com.droptechsolution.shared.outletinfo.model.api.staff.StaffLogoutRequest
+import com.droptechsolution.shared.outletinfo.model.api.staff.StaffLogoutResponse
 import io.ktor.client.request.setBody
 
 class OutletApi(
@@ -22,6 +24,13 @@ class OutletApi(
         request: StaffLoginRequest,
     ): NetworkResult<StaffDetailsResponse> =
         networkClient.post("${URN.SERVER}${URN.STAFF_LOGIN}") {
+            setBody(request)
+        }
+
+    suspend fun staffLogout(
+        request: StaffLogoutRequest,
+    ): NetworkResult<StaffLogoutResponse> =
+        networkClient.post("${URN.SERVER}${URN.STAFF_LOGOUT}") {
             setBody(request)
         }
 

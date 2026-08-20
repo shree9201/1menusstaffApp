@@ -23,3 +23,15 @@ data class NotificationRequest(
     val title : String,
     val message : String
 )
+
+@Serializable
+data class StaffLogoutRequest(
+    val outletId: Int,
+    val staffId: Int,
+)
+
+@Serializable
+data class StaffLogoutResponse(
+    val status: Boolean = false,
+    val value: String? = null,
+)

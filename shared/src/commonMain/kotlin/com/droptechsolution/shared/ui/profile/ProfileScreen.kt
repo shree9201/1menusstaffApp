@@ -24,6 +24,7 @@ import androidx.compose.material.icons.filled.Groups
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
@@ -59,6 +60,7 @@ fun ProfileScreen(
     modifier: Modifier = Modifier,
     onLogout: () -> Unit = {},
     onHelpSupport: () -> Unit = {},
+    onMyAttendance: () -> Unit = {},
     viewModel: ProfileViewModel = koinViewModel(),
 ) {
     LaunchedEffect(Unit) {
@@ -72,11 +74,16 @@ fun ProfileScreen(
     }
 
     val uiState by viewModel.uiState.collectAsState()
+    val isLoggingOut by viewModel.isLoggingOut.collectAsState()
     var showLogoutConfirmation by remember { mutableStateOf(false) }
 
     if (showLogoutConfirmation) {
         AlertDialog(
-            onDismissRequest = { showLogoutConfirmation = false },
+            onDismissRequest = {
+                if (!isLoggingOut) {
+                    showLogoutConfirmation = false
+                }
+            },
             title = {
                 Text(
                     text = "Logout",
@@ -96,25 +103,30 @@ fun ProfileScreen(
                         showLogoutConfirmation = false
                         viewModel.logout()
                     },
+                    enabled = !isLoggingOut,
                 ) {
                     Text(text = "Yes", color = MenusPrimary)
                 }
             },
             dismissButton = {
-                TextButton(onClick = { showLogoutConfirmation = false }) {
+                TextButton(
+                    onClick = { showLogoutConfirmation = false },
+                    enabled = !isLoggingOut,
+                ) {
                     Text(text = "No", color = TextMuted)
                 }
             },
         )
     }
 
-    Column(
-        modifier = modifier
-            .fillMaxSize()
-            .background(BG_LIGHT)
-            .verticalScroll(rememberScrollState())
-            .padding(24.dp),
-    ) {
+    Box(modifier = modifier.fillMaxSize()) {
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(BG_LIGHT)
+                .verticalScroll(rememberScrollState())
+                .padding(24.dp),
+        ) {
         ProfileHeader(isManagerProfile = uiState.isManagerProfile)
         Spacer(modifier = Modifier.height(20.dp))
         ProfileOverviewCard(uiState = uiState)
@@ -136,6 +148,12 @@ fun ProfileScreen(
         )
         Spacer(modifier = Modifier.height(12.dp))
         ProfileMenuItem(
+            title = "My Attendance",
+            subtitle = "View monthly attendance & working hours",
+            onClick = onMyAttendance,
+        )
+        Spacer(modifier = Modifier.height(12.dp))
+        ProfileMenuItem(
             title = "Help & Support",
             subtitle = "Raise issue to admin/support team",
             onClick = onHelpSupport,
@@ -144,9 +162,21 @@ fun ProfileScreen(
         ProfileMenuItem(
             title = "Logout",
             subtitle = "Sign out of manager account",
-            onClick = { showLogoutConfirmation = true },
+            onClick = if (isLoggingOut) null else ({ showLogoutConfirmation = true }),
         )
         Spacer(modifier = Modifier.height(24.dp))
+        }
+
+        if (isLoggingOut) {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(Color.Black.copy(alpha = 0.25f)),
+                contentAlignment = Alignment.Center,
+            ) {
+                CircularProgressIndicator(color = MenusPrimary)
+            }
+        }
     }
 }
 

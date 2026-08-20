@@ -7,7 +7,9 @@ object URN {
     val OUTLET_INFO = "/API/outletInfo"
 //    val STAFF_LOGIN ="/application_service/staffLogin"
     val STAFF_LOGIN ="staffLogin"
+    val STAFF_LOGOUT = "logout"
     val STAFF_LIST = "getStaffList"
+    val STAFF_ATTENDANCES = "staffAttendances"
     val SEND_NOTIFICATION = "/sendPushNotification"
 
     //Services

@@ -22,6 +22,7 @@ import androidx.navigation.toRoute
 import com.droptechsolution.shared.navigation.ContactItSupportRoute
 import com.droptechsolution.shared.navigation.DashboardNavigator
 import com.droptechsolution.shared.navigation.HelpSupportRoute
+import com.droptechsolution.shared.navigation.MyAttendanceRoute
 import com.droptechsolution.shared.navigation.HomeRoute
 import com.droptechsolution.shared.navigation.ProfileRoute
 import com.droptechsolution.shared.navigation.ReportOperationalIssueRoute
@@ -33,6 +34,7 @@ import com.droptechsolution.shared.services.views.RequestDetailsScreen
 import com.droptechsolution.shared.ui.dashboard.presenter.DashboardViewModel
 import com.droptechsolution.shared.ui.home.views.HomeScreen
 import com.droptechsolution.shared.ui.profile.ProfileScreen
+import com.droptechsolution.shared.ui.profile.attendance.views.MyAttendanceScreen
 import com.droptechsolution.shared.ui.profile.help.ContactItSupportScreen
 import com.droptechsolution.shared.ui.profile.help.HelpSupportScreen
 import com.droptechsolution.shared.ui.profile.help.ReportOperationalIssueScreen
@@ -128,6 +130,13 @@ fun DashboardScreen(
                         modifier = Modifier.fillMaxSize(),
                         onLogout = onLogout,
                         onHelpSupport = dashboardNavigator::goToHelpSupport,
+                        onMyAttendance = dashboardNavigator::goToMyAttendance,
+                    )
+                }
+                composable<MyAttendanceRoute> {
+                    MyAttendanceScreen(
+                        modifier = Modifier.fillMaxSize(),
+                        onBack = dashboardNavigator::navigateUp,
                     )
                 }
                 composable<HelpSupportRoute> {

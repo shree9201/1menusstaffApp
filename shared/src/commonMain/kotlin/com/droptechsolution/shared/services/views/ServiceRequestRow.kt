@@ -27,7 +27,8 @@ import com.droptechsolution.shared.services.models.TaskActionType
 import com.droptechsolution.shared.services.models.TaskPriority
 import com.droptechsolution.shared.services.models.TaskStatus
 import com.droptechsolution.shared.services.models.toLabel
-import com.droptechsolution.shared.ui.faicon.FontAwesomeUnicodeIcon
+import com.droptechsolution.shared.ui.faicon.FontAwesomeSolid
+import com.droptechsolution.shared.ui.faicon.toFontAwesomeSolidText
 import com.droptechsolution.shared.ui.theme.BG_LIGHT
 import com.droptechsolution.shared.ui.theme.BLACK
 import com.droptechsolution.shared.ui.theme.MenusTeal
@@ -129,23 +130,22 @@ private fun TaskIconBox(
             .background(BG_LIGHT),
         contentAlignment = Alignment.Center,
     ) {
-        if (
-            !iconUnicode.isNullOrBlank() &&
-            FontAwesomeUnicodeIcon(
-                iconUnicode = iconUnicode,
-                size = 22.dp,
-                tint = MenusTeal,
+        val iconText = iconUnicode.toFontAwesomeSolidText()
+        if (iconText != null) {
+            Text(
+                text = iconText,
+                fontFamily = FontAwesomeSolid(),
+                fontSize = 22.sp,
+                color = MenusTeal,
             )
-        ) {
-            return@Box
+        } else {
+            Icon(
+                imageVector = Icons.Default.RoomService,
+                contentDescription = null,
+                tint = MenusTeal,
+                modifier = Modifier.padding(10.dp),
+            )
         }
-
-        Icon(
-            imageVector = Icons.Default.RoomService,
-            contentDescription = null,
-            tint = MenusTeal,
-            modifier = Modifier.padding(10.dp),
-        )
     }
 }
 

@@ -15,7 +15,12 @@ import com.droptechsolution.menus.MenusApplication
 import com.droptechsolution.menus.home.HomeViewModel
 import com.droptechsolution.menus.home.HomeViewModelFactory
 import com.droptechsolution.menus.ui.theme._1MenusTheme
+import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.ui.text.font.Font
+import androidx.compose.ui.text.font.FontFamily
+import com.droptechsolution.menus.R
 import com.droptechsolution.shared.navigation.MenusNavHost
+import com.droptechsolution.shared.ui.faicon.LocalFontAwesomeSolid
 import javax.inject.Inject
 
 class HomeActivity: ComponentActivity() {
@@ -43,13 +48,17 @@ class HomeActivity: ComponentActivity() {
 
         setContent {
             _1MenusTheme {
-                Scaffold(modifier = Modifier.fillMaxSize()) {
-                    innerPadding ->
+                CompositionLocalProvider(
+                    LocalFontAwesomeSolid provides FontFamily(Font(R.font.fontawesome_solid)),
+                ) {
+                    Scaffold(modifier = Modifier.fillMaxSize()) {
+                        innerPadding ->
 //                    HomeScreen(
 //                        modifier = Modifier.padding(innerPadding),
 //                        viewModel
 //                    )
-                    MenusNavHost(modifier = Modifier.padding(innerPadding))
+                        MenusNavHost(modifier = Modifier.padding(innerPadding))
+                    }
                 }
             }
         }

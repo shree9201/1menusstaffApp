@@ -38,7 +38,12 @@ import com.droptechsolution.menus.home.HomeViewModelFactory
 import com.droptechsolution.menus.home.ILoginClicked
 import com.droptechsolution.menus.home.details.HomeActivity
 import com.droptechsolution.menus.ui.theme._1MenusTheme
+import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.ui.text.font.Font
+import androidx.compose.ui.text.font.FontFamily
+import com.droptechsolution.menus.R
 import com.droptechsolution.shared.navigation.MenusNavHost
+import com.droptechsolution.shared.ui.faicon.LocalFontAwesomeSolid
 import javax.inject.Inject
 
 
@@ -81,7 +86,11 @@ class MainActivity : ComponentActivity(), ILoginClicked {
 
         setContent {
             _1MenusTheme {
-                MenusNavHost(modifier = Modifier.fillMaxSize())
+                CompositionLocalProvider(
+                    LocalFontAwesomeSolid provides FontFamily(Font(R.font.fontawesome_solid)),
+                ) {
+                    MenusNavHost(modifier = Modifier.fillMaxSize())
+                }
             }
         }
     }

@@ -178,4 +178,7 @@ internal object FontAwesomeUnicodeStore {
         unicodeByName[normalized.removeSuffix("-alt")]?.let { return Char(it) }
         return null
     }
+
+    fun resolveName(codePoint: Int): String? =
+        unicodeByName.entries.firstOrNull { it.value == codePoint }?.key
 }

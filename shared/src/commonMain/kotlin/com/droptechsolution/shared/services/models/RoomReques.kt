@@ -29,6 +29,7 @@ data class RoomRequestDto(
     val points: String,
     val serviceDetails: List<OutletServiceDto> = emptyList(),
     val timeMetrics: TimeMetricsDto? = null,
+    val iconUnicode: String? = null,
 )
 
 @Serializable

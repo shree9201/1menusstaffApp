@@ -40,7 +40,7 @@ data class ServiceRequestRowUi(
     val priority: TaskPriority,
     val action: TaskActionType,
     val source: RequestSource = RequestSource.ROOM,
-    val iconHtml: String? = null,
+    val iconUnicode: String? = null,
 )
 
 fun RoomRequest.toRowUi(priority: TaskPriority = TaskPriority.MEDIUM): ServiceRequestRowUi {
@@ -54,7 +54,8 @@ fun RoomRequest.toRowUi(priority: TaskPriority = TaskPriority.MEDIUM): ServiceRe
         priority = service?.priority?.toTaskPriority() ?: priority,
         action = status.toTaskAction(),
         source = RequestSource.ROOM,
-        iconHtml = service?.icon?.takeIf { it.isNotBlank() },
+        iconUnicode = iconUnicode?.takeIf { it.isNotBlank() }
+            ?: service?.iconUnicode?.takeIf { it.isNotBlank() },
     )
 }
 
@@ -68,7 +69,7 @@ fun OutletService.toRowUi(): ServiceRequestRowUi =
         priority = priority.toTaskPriority(),
         action = TaskActionType.NONE,
         source = RequestSource.OUTLET,
-        iconHtml = icon.takeIf { it.isNotBlank() },
+        iconUnicode = iconUnicode?.takeIf { it.isNotBlank() },
     )
 
 fun String.toTaskStatus(): TaskStatus = when (uppercase()) {

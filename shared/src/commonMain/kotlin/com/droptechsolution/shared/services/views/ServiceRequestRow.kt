@@ -8,8 +8,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.CleaningServices
-import androidx.compose.material.icons.filled.LocalLaundryService
 import androidx.compose.material.icons.filled.RoomService
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
@@ -19,7 +17,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -30,8 +27,7 @@ import com.droptechsolution.shared.services.models.TaskActionType
 import com.droptechsolution.shared.services.models.TaskPriority
 import com.droptechsolution.shared.services.models.TaskStatus
 import com.droptechsolution.shared.services.models.toLabel
-import com.droptechsolution.shared.ui.faicon.FontAwesomeLigatureIcon
-import com.droptechsolution.shared.ui.faicon.toFontAwesomeHtmlClass
+import com.droptechsolution.shared.ui.faicon.FontAwesomeUnicodeIcon
 import com.droptechsolution.shared.ui.theme.BG_LIGHT
 import com.droptechsolution.shared.ui.theme.BLACK
 import com.droptechsolution.shared.ui.theme.MenusTeal
@@ -54,29 +50,15 @@ fun ServiceRequestRow(
             .clickable { onRowClick(item) }
             .padding(horizontal = 16.dp, vertical = 14.dp),
     ) {
-        val (roomNoRef,iconRef, roomRef, titleRef, subtitleRef, rightColumnRef) = createRefs()
+        val (roomNoRef, iconRef, titleRef, subtitleRef, rightColumnRef) = createRefs()
 
         TaskIconBox(
-            iconHtml = item.iconHtml,
-            fallbackTitle = item.title,
+            iconUnicode = item.iconUnicode,
             modifier = Modifier.constrainAs(iconRef) {
                 start.linkTo(parent.start)
                 top.linkTo(parent.top)
                 width = Dimension.value(46.dp)
                 height = Dimension.value(46.dp)
-            },
-        )
-
-        Text(
-            text = item.roomNumber,
-            color = TextMuted,
-            fontSize = 12.sp,
-            fontWeight = FontWeight.Medium,
-            modifier = Modifier.constrainAs(roomRef) {
-                top.linkTo(iconRef.bottom, margin = 6.dp)
-                start.linkTo(iconRef.start)
-                end.linkTo(iconRef.end)
-                width = Dimension.wrapContent
             },
         )
 
@@ -138,33 +120,32 @@ fun ServiceRequestRow(
 
 @Composable
 private fun TaskIconBox(
-    iconHtml: String?,
-    fallbackTitle: String,
+    iconUnicode: String?,
     modifier: Modifier = Modifier,
 ) {
-    val htmlClass = iconHtml.toFontAwesomeHtmlClass()
-
     Box(
         modifier = modifier
             .clip(RoundedCornerShape(14.dp))
             .background(BG_LIGHT),
         contentAlignment = Alignment.Center,
     ) {
-        if (htmlClass != null && FontAwesomeLigatureIcon(
-                htmlClass = htmlClass,
+        if (
+            !iconUnicode.isNullOrBlank() &&
+            FontAwesomeUnicodeIcon(
+                iconUnicode = iconUnicode,
                 size = 22.dp,
                 tint = MenusTeal,
             )
         ) {
-            // Font Awesome glyph rendered.
-        } else {
-            Icon(
-                imageVector = fallbackTitle.toTaskIcon(),
-                contentDescription = null,
-                tint = MenusTeal,
-                modifier = Modifier.padding(10.dp),
-            )
+            return@Box
         }
+
+        Icon(
+            imageVector = Icons.Default.RoomService,
+            contentDescription = null,
+            tint = MenusTeal,
+            modifier = Modifier.padding(10.dp),
+        )
     }
 }
 
@@ -238,15 +219,6 @@ private fun TaskActionButton(
     }
 }
 
-private fun String.toTaskIcon(): ImageVector {
-    val normalized = lowercase()
-    return when {
-        normalized.contains("towel") || normalized.contains("linen") -> Icons.Default.LocalLaundryService
-        normalized.contains("clean") -> Icons.Default.CleaningServices
-        else -> Icons.Default.RoomService
-    }
-}
-
 @Preview
 @Composable
 private fun ServiceRequestRowPreview() {
@@ -264,7 +236,7 @@ private fun ServiceRequestRowPreview() {
                 taskStatus = TaskStatus.CLOSE,
                 priority = TaskPriority.HIGH,
                 action = TaskActionType.NONE,
-                iconHtml = """<i class="fal fa-luggage-cart"></i>""",
+                iconUnicode = "uf59d",
             ),
         )
     }

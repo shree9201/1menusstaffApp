@@ -19,5 +19,13 @@ data class RoomRequestsRequest(
     val filterBy: List<RoomRequestFilter> = emptyList(),
 )
 
+fun apiStatusFilterValue(status: String): String = when (status.uppercase()) {
+    "ACCEPT" -> "ACCEPTED"
+    "START" -> "STARTED"
+    "CLOSED" -> "CLOSE"
+    "PAUSE", "PAUSED" -> "HOLD"
+    else -> status.uppercase()
+}
+
 fun statusFilter(status: String): List<RoomRequestFilter> =
-    listOf(RoomRequestFilter(key = "status", value = status))
+    listOf(RoomRequestFilter(key = "status", value = apiStatusFilterValue(status)))

@@ -17,6 +17,7 @@ data class RoomRequest(
     val endTime: String = "",
     val timeMetrics: TimeMetrics,
     val serviceDetails: List<OutletService> = emptyList(),
+    val iconUnicode: String? = null,
 )
 
 data class TimeMetrics(
@@ -44,6 +45,7 @@ data class OutletService(
     val createdDate: String,
     val updatedDate: String,
     val icon: String = "",
+    val iconUnicode: String? = null,
 )
 
 data class RequestDetails(
@@ -83,6 +85,8 @@ fun RoomRequestDto.toDomain(): RoomRequest {
             activitiesCount = 0,
         ),
         serviceDetails = serviceDetails.map { it.toDomain() },
+        iconUnicode = iconUnicode?.takeIf { it.isNotBlank() }
+            ?: serviceDetails.firstOrNull()?.iconUnicode?.takeIf { it.isNotBlank() },
     )
 }
 
@@ -114,6 +118,7 @@ fun OutletServiceDto.toDomain(): OutletService {
         createdDate = created_date,
         updatedDate = updated_date,
         icon = icon.orEmpty(),
+        iconUnicode = iconUnicode?.takeIf { it.isNotBlank() },
     )
 }
 

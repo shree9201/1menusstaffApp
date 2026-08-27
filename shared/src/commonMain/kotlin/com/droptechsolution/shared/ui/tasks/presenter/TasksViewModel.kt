@@ -5,6 +5,7 @@ import androidx.lifecycle.viewModelScope
 import com.droptechsolution.shared.network.NetworkResult
 import com.droptechsolution.shared.services.interactor.ServicesInteractor
 import com.droptechsolution.shared.services.models.DepartmentOverviewCategory
+import com.droptechsolution.shared.services.models.filterStatuses
 import com.droptechsolution.shared.services.models.ServiceRequestRowUi
 import com.droptechsolution.shared.ui.common.user.UserSession
 import com.droptechsolution.shared.ui.common.user.UserStorage
@@ -69,7 +70,7 @@ class TasksViewModel(
                 return@launch
             }
 
-            val statusFilters = _overviewCategory.value?.toFilterStatuses().orEmpty()
+            val statusFilters = _overviewCategory.value?.filterStatuses().orEmpty()
 
             when (
                 val result = servicesInteractor.loadAllTasks(
@@ -109,13 +110,6 @@ class TasksViewModel(
         _overviewCategory.value = overviewCategoryKey?.let { key ->
             DepartmentOverviewCategory.entries.firstOrNull { it.name == key }
         }
-    }
-
-    private fun DepartmentOverviewCategory.toFilterStatuses(): List<String> = when (this) {
-        DepartmentOverviewCategory.PENDING -> listOf("NEW")
-        DepartmentOverviewCategory.IN_PROGRESS -> listOf("ACCEPT", "START")
-        DepartmentOverviewCategory.COMPLETED -> listOf("CLOSE")
-        DepartmentOverviewCategory.DELAYED -> listOf("ESCALATED")
     }
 
     private data class TasksLoadKey(

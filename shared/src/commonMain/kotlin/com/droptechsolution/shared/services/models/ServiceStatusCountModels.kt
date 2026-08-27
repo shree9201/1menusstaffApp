@@ -42,27 +42,34 @@ fun ServiceStatusCountResponse.toDepartmentOverviewStats(): List<DepartmentOverv
             category = DepartmentOverviewCategory.PENDING,
             label = "Pending",
             count = sum("NEW", "ASSIGN", "ASSIGNED"),
-            filterStatuses = listOf("NEW"),
+            filterStatuses = DepartmentOverviewCategory.PENDING.filterStatuses(),
         ),
         DepartmentOverviewStatUi(
             category = DepartmentOverviewCategory.IN_PROGRESS,
             label = "In Progress",
             count = sum("ACCEPT", "ACCEPTED", "START", "STARTED"),
-            filterStatuses = listOf("ACCEPT", "START"),
+            filterStatuses = DepartmentOverviewCategory.IN_PROGRESS.filterStatuses(),
         ),
         DepartmentOverviewStatUi(
             category = DepartmentOverviewCategory.COMPLETED,
             label = "Completed",
             count = sum("CLOSE", "CLOSED", "DONE", "END"),
-            filterStatuses = listOf("CLOSE"),
+            filterStatuses = DepartmentOverviewCategory.COMPLETED.filterStatuses(),
         ),
         DepartmentOverviewStatUi(
             category = DepartmentOverviewCategory.DELAYED,
             label = "Delayed",
             count = sum("ESCALATED", "HOLD", "PAUSE", "PAUSED", "REJECT", "REJECTED"),
-            filterStatuses = listOf("ESCALATED"),
+            filterStatuses = DepartmentOverviewCategory.DELAYED.filterStatuses(),
         ),
     )
+}
+
+fun DepartmentOverviewCategory.filterStatuses(): List<String> = when (this) {
+    DepartmentOverviewCategory.PENDING -> listOf("NEW")
+    DepartmentOverviewCategory.IN_PROGRESS -> listOf("ACCEPTED", "STARTED")
+    DepartmentOverviewCategory.COMPLETED -> listOf("CLOSE")
+    DepartmentOverviewCategory.DELAYED -> listOf("HOLD")
 }
 
 fun DepartmentOverviewCategory.apiKey(): String = name

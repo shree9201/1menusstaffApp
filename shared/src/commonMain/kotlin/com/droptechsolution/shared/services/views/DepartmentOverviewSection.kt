@@ -113,9 +113,9 @@ private fun DepartmentOverviewSectionPreview() {
     DepartmentOverviewSection(
         stats = listOf(
             DepartmentOverviewStatUi(DepartmentOverviewCategory.PENDING, "Pending", 0, listOf("NEW")),
-            DepartmentOverviewStatUi(DepartmentOverviewCategory.IN_PROGRESS, "In Progress", 0, listOf("ACCEPT", "START")),
+            DepartmentOverviewStatUi(DepartmentOverviewCategory.IN_PROGRESS, "In Progress", 0, listOf("ACCEPTED", "STARTED")),
             DepartmentOverviewStatUi(DepartmentOverviewCategory.COMPLETED, "Completed", 0, listOf("CLOSE")),
-            DepartmentOverviewStatUi(DepartmentOverviewCategory.DELAYED, "Delayed", 0, listOf("ESCALATED")),
+            DepartmentOverviewStatUi(DepartmentOverviewCategory.DELAYED, "Delayed", 0, listOf("HOLD")),
         ),
         modifier = Modifier.padding(16.dp).background(Color(0xFFEEF3F8)),
     )

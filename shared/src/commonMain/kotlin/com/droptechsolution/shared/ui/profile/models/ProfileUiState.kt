@@ -6,6 +6,8 @@ data class ProfileUiState(
     val initials: String = "",
     val departmentLabel: String = "",
     val username: String = "",
+    val email: String = "",
+    val mobile: String = "",
     val teamScore: String = "—",
     val teamRating: String = "—",
     val deptPerformance: String = "—",

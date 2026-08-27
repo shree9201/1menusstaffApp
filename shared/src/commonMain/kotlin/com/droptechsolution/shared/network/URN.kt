@@ -10,6 +10,8 @@ object URN {
     val STAFF_LOGOUT = "logout"
     val STAFF_LIST = "getStaffList"
     val STAFF_ATTENDANCES = "staffAttendances"
+    val CHANGE_PASSWORD = "changePassword"
+    val UPDATE_PROFILE = "updateProfile"
     val SEND_NOTIFICATION = "/sendPushNotification"
 
     //Services

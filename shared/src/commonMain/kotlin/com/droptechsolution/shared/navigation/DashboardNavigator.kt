@@ -54,6 +54,14 @@ class DashboardNavigator(
         navController.navigate(MyAttendanceRoute)
     }
 
+    fun goToChangePassword() {
+        navController.navigate(ChangePasswordRoute)
+    }
+
+    fun goToUpdateProfile() {
+        navController.navigate(UpdateProfileRoute)
+    }
+
     fun goToStaff() = navigateToTab(StaffRoute)
 
     fun goToTaskDetail(task: ServiceRequestRowUi) {

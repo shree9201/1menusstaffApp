@@ -31,7 +31,7 @@ enum class DashboardTab(
 
 fun dashboardTabsFor(session: UserSession?): List<DashboardTab> {
     val tabs = mutableListOf(DashboardTab.Home, DashboardTab.Tasks)
-    if (session?.staffType?.showsStaffTab() == true) {
+    if (session?.department?.showsStaffTab() == true) {
         tabs.add(DashboardTab.Staff)
     }
     tabs.add(DashboardTab.Profile)

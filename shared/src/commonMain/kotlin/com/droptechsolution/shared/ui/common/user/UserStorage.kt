@@ -27,6 +27,17 @@ class UserStorage(
         }
     }
 
+    suspend fun saveLoginUserType(userType: String) {
+        dataStore.edit {
+            it[LOGIN_USER_TYPE] = userType
+        }
+    }
+
+    fun getLoginUserType(): Flow<String?> =
+        dataStore.data.map { preferences ->
+            preferences[LOGIN_USER_TYPE]?.takeIf { it.isNotBlank() }
+        }
+
     /** Outlet ID comes from the logged-in staff record (`userId`). */
     fun getOutletId(): Flow<String?> =
         getLoggedInStaff().map { staff ->
@@ -58,11 +69,13 @@ class UserStorage(
         dataStore.edit { preferences ->
             preferences.remove(LOGGED_IN_STAFF)
             preferences.remove(USERNAME)
+            preferences.remove(LOGIN_USER_TYPE)
         }
     }
 
     companion object {
         val USERNAME = stringPreferencesKey("username")
         val LOGGED_IN_STAFF = stringPreferencesKey("logged_in_staff")
+        val LOGIN_USER_TYPE = stringPreferencesKey("login_user_type")
     }
 }

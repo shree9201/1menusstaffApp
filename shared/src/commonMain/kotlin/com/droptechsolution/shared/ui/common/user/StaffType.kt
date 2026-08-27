@@ -28,12 +28,7 @@ enum class StaffType(val apiKey: String) {
         UNKNOWN -> "Staff"
     }
 
-    /** Roles that see the Staff tab in bottom navigation. */
-    fun showsStaffTab(): Boolean = this in STAFF_TAB_ROLES
-
     companion object {
-        private val STAFF_TAB_ROLES = setOf(FOMGR, FOSU, FO, HKMGR, HKSU)
-
         fun fromApiKey(key: String?): StaffType =
             entries.firstOrNull { it.apiKey.equals(key, ignoreCase = true) } ?: UNKNOWN
     }
@@ -53,9 +48,15 @@ enum class StaffDepartment(val apiKey: String) {
         UNKNOWN -> ""
     }
 
+    /** Manager and HR roles see the Staff tab in bottom navigation. */
+    fun showsStaffTab(): Boolean = this == MANAGER || this == HR
+
     companion object {
         fun fromApiKey(key: String?): StaffDepartment =
-            entries.firstOrNull { it.apiKey.equals(key, ignoreCase = true) } ?: UNKNOWN
+            when (key?.trim()?.uppercase()) {
+                "HOD" -> MANAGER
+                else -> entries.firstOrNull { it.apiKey.equals(key, ignoreCase = true) } ?: UNKNOWN
+            }
     }
 }
 

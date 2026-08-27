@@ -45,14 +45,13 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.droptechsolution.shared.common.ui.GradientButton
 import com.droptechsolution.shared.common.ui.MenusDropdown
+import com.droptechsolution.shared.ui.common.ToastMessageEffect
 import com.droptechsolution.shared.ui.theme.BG_LIGHT
 import com.droptechsolution.shared.ui.theme.BG_WHITE
-import com.droptechsolution.shared.ui.theme.MenusError
 import com.droptechsolution.shared.ui.theme.MenusGradients
 import com.droptechsolution.shared.ui.theme.MenusPrimary
 import com.droptechsolution.shared.ui.theme.MenusTextStyles
 import com.droptechsolution.shared.ui.theme.MenusTheme
-import androidx.lifecycle.viewmodel.compose.viewModel
 import org.jetbrains.compose.ui.tooling.preview.Preview
 import org.koin.compose.viewmodel.koinViewModel
 
@@ -76,7 +75,6 @@ fun SecureLoginScreen(
         autoLogin: Boolean
     ) -> Unit = { _, _, _, _, _ -> }
 ) {
-    val errorMessage by viewModel.errorMessage.collectAsState()
     val isLoading by viewModel.isLoading.collectAsState()
     val loginSuccess by viewModel.loginState.collectAsState()
 
@@ -86,6 +84,30 @@ fun SecureLoginScreen(
         }
     }
 
+    ToastMessageEffect(messages = viewModel.toastEvents) {
+        SecureLoginContent(
+            modifier = modifier,
+            isLoading = isLoading,
+            onSubmit = { outletCode, selectedRole, username, password, autoLogin ->
+                viewModel.login(outletCode, username, password, selectedRole.value)
+                onSubmit(outletCode, selectedRole, username, password, autoLogin)
+            },
+        )
+    }
+}
+
+@Composable
+private fun SecureLoginContent(
+    modifier: Modifier = Modifier,
+    isLoading: Boolean,
+    onSubmit: (
+        outletCode: String,
+        role: LoginRole,
+        username: String,
+        password: String,
+        autoLogin: Boolean
+    ) -> Unit,
+) {
     var outletCodeError by remember { mutableStateOf<String?>(null) }
     var usernameError by remember { mutableStateOf<String?>(null) }
     var passwordError by remember { mutableStateOf<String?>(null) }
@@ -226,25 +248,14 @@ fun SecureLoginScreen(
                         ).any { it != null }
 
                         if (!hasError) {
-                            viewModel.login(outletCode, username, password,selectedRole.value)
                             onSubmit(
                                 outletCode,
                                 selectedRole,
                                 username,
                                 password,
-                                autoLogin
+                                autoLogin,
                             )
                         }
-                    }
-
-                    if (errorMessage.isNotBlank()) {
-                        Spacer(modifier = Modifier.height(12.dp))
-                        Text(
-                            modifier = Modifier.fillMaxWidth(),
-                            text = errorMessage,
-                            color = MenusError,
-                            style = MenusTextStyles.formLabel
-                        )
                     }
 
                     Spacer(modifier = Modifier.height(16.dp))

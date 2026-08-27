@@ -5,11 +5,14 @@ import androidx.lifecycle.viewModelScope
 import com.droptechsolution.shared.masterdata.interactor.MasterDataInteractor
 import com.droptechsolution.shared.network.NetworkResult
 import com.droptechsolution.shared.outletinfo.model.api.OutletApi
+import com.droptechsolution.shared.outletinfo.model.api.StaffLoginResult
 import com.droptechsolution.shared.outletinfo.model.api.staff.StaffLoginRequest
 import com.droptechsolution.shared.platform
 import com.droptechsolution.shared.push.OneSignalWrapper
 import com.droptechsolution.shared.ui.common.user.UserStorage
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 
@@ -23,8 +26,8 @@ class LoginViewModel(
     private val _loginState = MutableStateFlow(false)
     val loginState = _loginState.asStateFlow()
 
-    private val _errorMessage = MutableStateFlow("")
-    val errorMessage = _errorMessage.asStateFlow()
+    private val _toastEvents = MutableSharedFlow<String>(extraBufferCapacity = 1)
+    val toastEvents = _toastEvents.asSharedFlow()
 
     private val _isLoading = MutableStateFlow(false)
     val isLoading = _isLoading.asStateFlow()
@@ -35,7 +38,6 @@ class LoginViewModel(
     fun login(outletCode: String, username: String, password: String, userType: String) {
         viewModelScope.launch {
             _isLoading.value = true
-            _errorMessage.value = ""
             val playerId = pushTokenProvider.requestToken().orEmpty()
 
             when (
@@ -51,18 +53,21 @@ class LoginViewModel(
                 )
             ) {
                 is NetworkResult.Success -> {
-                    val response = result.data
-                    if (!response.status) {
-                        _errorMessage.value = "Invalid credentials"
-                    } else {
-                        userStorage.saveStaffUser(response.value)
-                        OneSignalWrapper.setExternalId(response.value.id)
-                        loadMasterData()
-                        _loginState.value = true
+                    when (val loginResult = result.data) {
+                        is StaffLoginResult.Success -> {
+                            userStorage.saveStaffUser(loginResult.staff)
+                            userStorage.saveLoginUserType(userType)
+                            OneSignalWrapper.setExternalId(loginResult.staff.id)
+                            loadMasterData()
+                            _loginState.value = true
+                        }
+                        is StaffLoginResult.Failure -> {
+                            _toastEvents.emit(loginResult.message)
+                        }
                     }
                 }
                 is NetworkResult.Error -> {
-                    _errorMessage.value = result.error.userMessage
+                    _toastEvents.emit(result.error.userFacingMessage())
                 }
             }
             _isLoading.value = false

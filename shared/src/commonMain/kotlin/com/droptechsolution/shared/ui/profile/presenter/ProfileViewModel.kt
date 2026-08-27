@@ -107,6 +107,8 @@ class ProfileViewModel(
                 department?.takeIf { it.isNotBlank() } ?: staffType.defaultLabel()
             },
             username = username,
+            email = email.orEmpty(),
+            mobile = mobile.orEmpty(),
             isManagerProfile = isManager,
         )
     }

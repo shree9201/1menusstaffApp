@@ -19,6 +19,8 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.toRoute
+import com.droptechsolution.shared.navigation.UpdateProfileRoute
+import com.droptechsolution.shared.navigation.ChangePasswordRoute
 import com.droptechsolution.shared.navigation.ContactItSupportRoute
 import com.droptechsolution.shared.navigation.DashboardNavigator
 import com.droptechsolution.shared.navigation.HelpSupportRoute
@@ -35,6 +37,8 @@ import com.droptechsolution.shared.ui.dashboard.presenter.DashboardViewModel
 import com.droptechsolution.shared.ui.home.views.HomeScreen
 import com.droptechsolution.shared.ui.profile.ProfileScreen
 import com.droptechsolution.shared.ui.profile.attendance.views.MyAttendanceScreen
+import com.droptechsolution.shared.ui.profile.changepassword.views.ChangePasswordScreen
+import com.droptechsolution.shared.ui.profile.updateprofile.views.UpdateProfileScreen
 import com.droptechsolution.shared.ui.profile.help.ContactItSupportScreen
 import com.droptechsolution.shared.ui.profile.help.HelpSupportScreen
 import com.droptechsolution.shared.ui.profile.help.ReportOperationalIssueScreen
@@ -59,6 +63,14 @@ fun DashboardScreen(
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentDestination = navBackStackEntry?.destination
     val visibleTabs = remember(userSession) { dashboardTabsFor(userSession) }
+
+    LaunchedEffect(userSession, currentDestination) {
+        if (currentDestination?.hasRoute(StaffRoute::class) == true &&
+            userSession?.department?.showsStaffTab() != true
+        ) {
+            dashboardNavigator.goToFeed()
+        }
+    }
 
     val selectedTab = when {
         currentDestination?.hasRoute(TasksRoute::class) == true -> DashboardTab.Tasks
@@ -131,6 +143,20 @@ fun DashboardScreen(
                         onLogout = onLogout,
                         onHelpSupport = dashboardNavigator::goToHelpSupport,
                         onMyAttendance = dashboardNavigator::goToMyAttendance,
+                        onChangePassword = dashboardNavigator::goToChangePassword,
+                        onUpdateProfile = dashboardNavigator::goToUpdateProfile,
+                    )
+                }
+                composable<UpdateProfileRoute> {
+                    UpdateProfileScreen(
+                        modifier = Modifier.fillMaxSize(),
+                        onBack = dashboardNavigator::navigateUp,
+                    )
+                }
+                composable<ChangePasswordRoute> {
+                    ChangePasswordScreen(
+                        modifier = Modifier.fillMaxSize(),
+                        onBack = dashboardNavigator::navigateUp,
                     )
                 }
                 composable<MyAttendanceRoute> {

@@ -10,6 +10,7 @@ import com.droptechsolution.menus.push.ITokenService
 import com.droptechsolution.shared.network.NetworkProvider
 import com.droptechsolution.shared.network.NetworkResult
 import com.droptechsolution.shared.outletinfo.model.api.OutletRequest
+import com.droptechsolution.shared.outletinfo.model.api.StaffLoginResult
 import com.droptechsolution.shared.outletinfo.model.api.staff.NotificationRequest
 import com.droptechsolution.shared.outletinfo.model.api.staff.StaffDetails
 import com.droptechsolution.shared.outletinfo.model.api.staff.StaffListRequest
@@ -68,8 +69,9 @@ class HomeViewModel @Inject constructor(private val tokenService: ITokenService)
             when (info) {
                 is NetworkResult.Success -> {
                     Log.v("HomeViewModel", "${info.data}")
-                    if (info.data.status) {
-                        _loginState.postValue(true)
+                    when (val loginResult = info.data) {
+                        is StaffLoginResult.Success -> _loginState.postValue(true)
+                        is StaffLoginResult.Failure -> Log.e("HomeViewModel", loginResult.message)
                     }
                 }
                 is NetworkResult.Error -> Log.e("HomeViewModel", info.error.userMessage)

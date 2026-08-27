@@ -24,9 +24,10 @@ class DashboardViewModel(
         viewModelScope.launch {
             combine(
                 userStorage.getLoggedInStaff(),
+                userStorage.getLoginUserType(),
                 masterDataInteractor.masterData,
-            ) { staff, masterData ->
-                staff?.toUserSession(masterData)
+            ) { staff, loginUserType, masterData ->
+                staff?.toUserSession(masterData, loginUserType)
             }.collect { session ->
                 _userSession.value = session
             }
@@ -40,7 +41,11 @@ class DashboardViewModel(
                 masterDataInteractor.loadMasterData()
             }
             val staff = userStorage.getLoggedInStaff().firstOrNull()
-            _userSession.value = staff?.toUserSession(masterDataInteractor.masterData.value)
+            val loginUserType = userStorage.getLoginUserType().firstOrNull()
+            _userSession.value = staff?.toUserSession(
+                masterData = masterDataInteractor.masterData.value,
+                loginUserType = loginUserType,
+            )
         }
     }
 }

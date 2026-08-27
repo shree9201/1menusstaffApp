@@ -13,6 +13,8 @@ data class StaffDetails(
     val password:String,
     val type: String,
     val department: String? = null,
+    val email: String? = null,
+    val mobile: String? = null,
     val customised_position: String?,
     val online: String,
     val status: String,

@@ -61,6 +61,8 @@ fun ProfileScreen(
     onLogout: () -> Unit = {},
     onHelpSupport: () -> Unit = {},
     onMyAttendance: () -> Unit = {},
+    onChangePassword: () -> Unit = {},
+    onUpdateProfile: () -> Unit = {},
     viewModel: ProfileViewModel = koinViewModel(),
 ) {
     LaunchedEffect(Unit) {
@@ -143,8 +145,15 @@ fun ProfileScreen(
         )
         Spacer(modifier = Modifier.height(12.dp))
         ProfileMenuItem(
+            title = "Update Profile",
+            subtitle = "Update your contact & account details",
+            onClick = onUpdateProfile,
+        )
+        Spacer(modifier = Modifier.height(12.dp))
+        ProfileMenuItem(
             title = "Change Password",
             subtitle = "Keep your account secure",
+            onClick = onChangePassword,
         )
         Spacer(modifier = Modifier.height(12.dp))
         ProfileMenuItem(
@@ -404,7 +413,9 @@ private fun ContactInfoCard(uiState: ProfileUiState) {
     ) {
         ContactRow(label = "Username", value = uiState.username.ifBlank { "—" })
         HorizontalDivider(color = Color(0xFFE5E7EB))
-        ContactRow(label = "Email", value = "${uiState.username.ifBlank { "staff" }}@hotel.com")
+        ContactRow(label = "Email", value = uiState.email.ifBlank { "—" })
+        HorizontalDivider(color = Color(0xFFE5E7EB))
+        ContactRow(label = "Mobile", value = uiState.mobile.ifBlank { "—" })
         HorizontalDivider(color = Color(0xFFE5E7EB))
         ContactRow(label = "Department", value = uiState.departmentLabel.ifBlank { "—" })
     }

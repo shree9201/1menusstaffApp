@@ -57,3 +57,9 @@ object ContactItSupportRoute
 
 @Serializable
 object MyAttendanceRoute
+
+@Serializable
+object ChangePasswordRoute
+
+@Serializable
+object UpdateProfileRoute

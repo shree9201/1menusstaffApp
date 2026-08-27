@@ -15,9 +15,15 @@ data class UserSession(
 
 val LocalUserSession = staticCompositionLocalOf<UserSession?> { null }
 
-fun StaffDetails.toUserSession(masterData: MasterData? = null): UserSession {
+fun StaffDetails.toUserSession(
+    masterData: MasterData? = null,
+    loginUserType: String? = null,
+): UserSession {
     val staffType = type.toStaffType()
-    val staffDepartment = department.orEmpty().toStaffDepartment()
+    val staffDepartment = department.orEmpty()
+        .takeIf { it.isNotBlank() }
+        ?.toStaffDepartment()
+        ?: loginUserType.orEmpty().toStaffDepartment()
 
     val staffTypeLabel = masterData?.staffTypes
         ?.firstOrNull { it.key.equals(staffType.apiKey, ignoreCase = true) }

@@ -6,6 +6,9 @@ import com.droptechsolution.shared.network.NetworkError
 import com.droptechsolution.shared.network.NetworkResult
 import com.droptechsolution.shared.services.interactor.ServicesInteractor
 import com.droptechsolution.shared.services.models.RequestAction
+import com.droptechsolution.shared.services.models.apiStatus
+import com.droptechsolution.shared.services.models.toAvailableActions
+import com.droptechsolution.shared.services.models.toStatusDisplay
 import com.droptechsolution.shared.services.models.RequestDetailsUi
 import com.droptechsolution.shared.services.models.RequestSource
 import com.droptechsolution.shared.services.sla.ServiceSlaProgressUi
@@ -115,23 +118,40 @@ class RequestDetailsViewModel(
                 )
             ) {
                 is NetworkResult.Success -> {
-                    applyDetails(result.data)
-                    when (action) {
-                        RequestAction.START -> startSlaTracking(result.data)
-                        RequestAction.COMPLETE,
-                        RequestAction.PAUSE,
-                        RequestAction.REJECT,
-                        RequestAction.HOLD_ESCALATE,
-                        -> stopSlaTracking(result.data.id)
-                        RequestAction.ACCEPT,
-                        RequestAction.PASS,
-                        -> Unit
+                    _toastEvents.emit(result.data.message)
+                    val details = result.data.details
+                    if (details != null) {
+                        applyDetails(details)
+                        when (action) {
+                            RequestAction.START -> startSlaTracking(details)
+                            RequestAction.COMPLETE,
+                            RequestAction.PAUSE,
+                            RequestAction.REJECT,
+                            RequestAction.HOLD_ESCALATE,
+                            -> stopSlaTracking(details.id)
+                            RequestAction.ACCEPT,
+                            RequestAction.PASS,
+                            -> Unit
+                        }
+                    } else {
+                        applyLocalActionResult(action)
                     }
                 }
                 is NetworkResult.Error -> showActionError(result.error)
             }
             _isUpdating.value = false
         }
+    }
+
+    private suspend fun applyLocalActionResult(action: RequestAction) {
+        val current = _details.value ?: return
+        val updatedStatus = action.apiStatus()
+        stopSlaTracking(current.id)
+        _details.value = current.copy(
+            status = updatedStatus,
+            statusDisplay = updatedStatus.toStatusDisplay(),
+            availableActions = updatedStatus.toAvailableActions(),
+        )
     }
 
     private suspend fun applyDetails(details: RequestDetailsUi) {

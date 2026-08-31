@@ -5,6 +5,9 @@ import com.droptechsolution.shared.network.isApiSuccess
 import com.droptechsolution.shared.outletinfo.model.api.staff.StaffDetails
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.decodeFromJsonElement
+import kotlinx.serialization.json.jsonObject
+import kotlinx.serialization.json.jsonPrimitive
 
 @Serializable
 data class UpdateRequestBody(
@@ -37,20 +40,95 @@ data class UpdateRequestResponse(
 
 fun UpdateRequestResponse.isSuccessful(): Boolean = status.isApiSuccess()
 
+data class UpdateRequestResult(
+    val message: String,
+    val details: RequestDetailsUi? = null,
+)
+
 fun parseUpdateRequestResponse(jsonString: String): UpdateRequestResponse {
-    return runCatching {
-        networkJson.decodeFromString<UpdateRequestResponse>(jsonString)
-    }.getOrElse { primaryError ->
-        runCatching {
-            val details = networkJson.decodeFromString<RequestDetailsResponse>(jsonString)
-            UpdateRequestResponse(
-                status = details.status,
-                requestDetails = details,
-            )
-        }.getOrElse {
-            throw primaryError
+    val payloads = splitTopLevelJsonObjects(jsonString)
+        .sortedByDescending { payload -> payload.contains("requestDetails") }
+        .ifEmpty { listOf(jsonString.trim()) }
+
+    var lastError: Throwable? = null
+    for (payload in payloads) {
+        try {
+            return parseUpdateRequestPayload(payload)
+        } catch (error: Throwable) {
+            lastError = error
         }
     }
+
+    throw lastError ?: IllegalArgumentException("Unable to parse updateRequest response")
+}
+
+private fun parseUpdateRequestPayload(payload: String): UpdateRequestResponse {
+    val root = networkJson.parseToJsonElement(payload).jsonObject
+    val status = root["status"]?.jsonPrimitive?.content ?: "false"
+    val value = root["value"]?.jsonPrimitive?.content
+
+    val requestDetails = root["requestDetails"]?.let { element ->
+        runCatching {
+            networkJson.decodeFromJsonElement(RequestDetailsResponse.serializer(), element)
+        }.getOrNull()?.takeIf { it.isSuccessful() }
+    }
+
+    val notificationDetails = root["notificationDetails"]?.let { element ->
+        runCatching {
+            networkJson.decodeFromJsonElement(NotificationDetailsDto.serializer(), element)
+        }.getOrNull()
+    }
+
+    return UpdateRequestResponse(
+        status = status,
+        value = value,
+        requestDetails = requestDetails,
+        notificationDetails = notificationDetails,
+    )
+}
+
+/**
+ * Some responses prepend unrelated JSON before the real payload, e.g.
+ * `{"id":"...","external_id":null}{"status":"true",...}`.
+ */
+internal fun splitTopLevelJsonObjects(raw: String): List<String> {
+    val trimmed = raw.trim()
+    if (trimmed.isEmpty()) return emptyList()
+
+    val objects = mutableListOf<String>()
+    var depth = 0
+    var start = -1
+    var inString = false
+    var escaped = false
+
+    for (i in trimmed.indices) {
+        val char = trimmed[i]
+        if (inString) {
+            when {
+                escaped -> escaped = false
+                char == '\\' -> escaped = true
+                char == '"' -> inString = false
+            }
+            continue
+        }
+
+        when (char) {
+            '"' -> inString = true
+            '{' -> {
+                if (depth == 0) start = i
+                depth++
+            }
+            '}' -> {
+                depth--
+                if (depth == 0 && start >= 0) {
+                    objects.add(trimmed.substring(start, i + 1))
+                    start = -1
+                }
+            }
+        }
+    }
+
+    return objects
 }
 
 private val networkJson = Json {

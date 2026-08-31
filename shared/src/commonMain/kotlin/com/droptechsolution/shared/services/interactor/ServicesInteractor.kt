@@ -1,8 +1,6 @@
 package com.droptechsolution.shared.services.interactor
 
 import com.droptechsolution.shared.network.NetworkError
-import com.droptechsolution.shared.network.NetworkLogger
-import com.droptechsolution.shared.network.NETWORK_LOG_TAG
 import com.droptechsolution.shared.network.NetworkResult
 import com.droptechsolution.shared.services.models.OutletService
 import com.droptechsolution.shared.outletinfo.model.api.staff.StaffDetails
@@ -16,6 +14,7 @@ import com.droptechsolution.shared.services.models.ServiceRequestRowUi
 import com.droptechsolution.shared.services.models.DepartmentOverviewStatUi
 import com.droptechsolution.shared.services.models.ServicesRequest
 import com.droptechsolution.shared.services.models.UpdateRequestBody
+import com.droptechsolution.shared.services.models.UpdateRequestResult
 import com.droptechsolution.shared.services.models.apiStatus
 import com.droptechsolution.shared.services.models.defaultComment
 import com.droptechsolution.shared.services.models.isSuccessful
@@ -133,7 +132,7 @@ class ServicesInteractor(
         action: RequestAction,
         user: StaffDetails,
         staffName: String = user.name,
-    ): NetworkResult<RequestDetailsUi> {
+    ): NetworkResult<UpdateRequestResult> {
         val body = UpdateRequestBody(
             outletId = outletId,
             requestId = requestId,
@@ -145,27 +144,29 @@ class ServicesInteractor(
 
         return when (val result = servicesAPI.updateRequest(body)) {
             is NetworkResult.Success -> {
-                if (!result.data.isSuccessful()) {
-                    return NetworkResult.Error(NetworkError.Unknown("Unable to update request"))
-                }
-                val embeddedDetails = result.data.requestDetails
-                if (embeddedDetails != null && embeddedDetails.isSuccessful()) {
-                    NetworkResult.Success(embeddedDetails.toDomain().toUi())
-                } else {
-                    loadRequestDetails(outletId, requestId)
-                }
-            }
-            is NetworkResult.Error -> {
-                if (result.error is NetworkError.Serialization) {
-                    NetworkLogger.e(
-                        tag = NETWORK_LOG_TAG,
-                        message = "updateRequest parse failed; reloading request details for $requestId",
+                val response = result.data
+                if (!response.isSuccessful()) {
+                    return NetworkResult.Error(
+                        NetworkError.Unknown(response.value ?: "Unable to update request"),
                     )
-                    loadRequestDetails(outletId, requestId)
+                }
+
+                val message = response.value?.takeIf { it.isNotBlank() }
+                    ?: "Request updated successfully"
+                val embeddedDetails = response.requestDetails
+
+                if (embeddedDetails != null) {
+                    NetworkResult.Success(
+                        UpdateRequestResult(
+                            message = message,
+                            details = embeddedDetails.toDomain().toUi(),
+                        ),
+                    )
                 } else {
-                    result
+                    NetworkResult.Success(UpdateRequestResult(message = message))
                 }
             }
+            is NetworkResult.Error -> result
         }
     }
 

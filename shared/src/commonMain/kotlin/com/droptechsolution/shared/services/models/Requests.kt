@@ -22,7 +22,7 @@ data class RoomRequestsRequest(
 fun apiStatusFilterValue(status: String): String = when (status.uppercase()) {
     "ACCEPT" -> "ACCEPTED"
     "START" -> "STARTED"
-    "CLOSED" -> "CLOSE"
+    "CLOSED" -> "CLOSED"
     "PAUSE", "PAUSED" -> "HOLD"
     else -> status.uppercase()
 }

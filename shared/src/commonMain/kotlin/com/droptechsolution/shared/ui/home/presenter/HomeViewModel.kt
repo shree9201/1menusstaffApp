@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.droptechsolution.shared.masterdata.interactor.MasterDataInteractor
 import com.droptechsolution.shared.network.NetworkResult
+import com.droptechsolution.shared.services.TaskListRefreshNotifier
 import com.droptechsolution.shared.services.interactor.ServicesInteractor
 import com.droptechsolution.shared.services.models.DepartmentOverviewStatUi
 import com.droptechsolution.shared.services.models.StaffRequestScope
@@ -20,6 +21,7 @@ class HomeViewModel(
     private val userStorage: UserStorage,
     private val serviceInteractor: ServicesInteractor,
     private val masterDataInteractor: MasterDataInteractor,
+    private val taskListRefreshNotifier: TaskListRefreshNotifier,
 ) : ViewModel() {
 
     private val _loginState = MutableStateFlow(DashboardHeaderUi(""))
@@ -53,11 +55,16 @@ class HomeViewModel(
                 }
             }
         }
+        viewModelScope.launch {
+            taskListRefreshNotifier.events.collect {
+                loadDashboard(forceRefresh = true)
+            }
+        }
     }
 
-    fun loadDashboard() {
+    fun loadDashboard(forceRefresh: Boolean = false) {
         viewModelScope.launch {
-            if (isDashboardLoading) return@launch
+            if (!forceRefresh && isDashboardLoading) return@launch
             isDashboardLoading = true
             try {
                 loadDashboardData()

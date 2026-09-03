@@ -3,6 +3,7 @@ package com.droptechsolution.shared.ui.tasks.presenter
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.droptechsolution.shared.network.NetworkResult
+import com.droptechsolution.shared.services.TaskListRefreshNotifier
 import com.droptechsolution.shared.services.interactor.ServicesInteractor
 import com.droptechsolution.shared.services.models.DepartmentOverviewCategory
 import com.droptechsolution.shared.services.models.filterStatuses
@@ -17,6 +18,7 @@ import kotlinx.coroutines.launch
 class TasksViewModel(
     private val servicesInteractor: ServicesInteractor,
     private val userStorage: UserStorage,
+    private val taskListRefreshNotifier: TaskListRefreshNotifier,
 ) : ViewModel() {
 
     private val _tasks = MutableStateFlow<List<ServiceRequestRowUi>>(emptyList())
@@ -39,6 +41,14 @@ class TasksViewModel(
 
     private var loadJob: Job? = null
     private var lastLoadedKey: TasksLoadKey? = null
+
+    init {
+        viewModelScope.launch {
+            taskListRefreshNotifier.events.collect {
+                refreshTasks()
+            }
+        }
+    }
 
     fun loadTasks(
         statusFilter: String? = null,

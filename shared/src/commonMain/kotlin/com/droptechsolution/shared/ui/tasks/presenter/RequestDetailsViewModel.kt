@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.droptechsolution.shared.network.NetworkError
 import com.droptechsolution.shared.network.NetworkResult
+import com.droptechsolution.shared.services.TaskListRefreshNotifier
 import com.droptechsolution.shared.services.interactor.ServicesInteractor
 import com.droptechsolution.shared.services.models.RequestAction
 import com.droptechsolution.shared.services.models.apiStatus
@@ -29,6 +30,7 @@ class RequestDetailsViewModel(
     private val servicesInteractor: ServicesInteractor,
     private val userStorage: UserStorage,
     private val slaTracker: ServiceSlaTracker,
+    private val taskListRefreshNotifier: TaskListRefreshNotifier,
 ) : ViewModel() {
 
     private val _details = MutableStateFlow<RequestDetailsUi?>(null)
@@ -136,6 +138,7 @@ class RequestDetailsViewModel(
                     } else {
                         applyLocalActionResult(action)
                     }
+                    taskListRefreshNotifier.notifyTaskListChanged()
                 }
                 is NetworkResult.Error -> showActionError(result.error)
             }

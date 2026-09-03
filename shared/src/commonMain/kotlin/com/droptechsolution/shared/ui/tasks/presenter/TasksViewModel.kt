@@ -70,6 +70,7 @@ class TasksViewModel(
                 return@launch
             }
 
+            val staffScope = userStorage.staffRequestScope()
             val statusFilters = _overviewCategory.value?.filterStatuses().orEmpty()
 
             when (
@@ -78,6 +79,7 @@ class TasksViewModel(
                     activeOnly = false,
                     statusFilter = statusFilter,
                     statusFilters = statusFilters,
+                    staffScope = staffScope,
                 )
             ) {
                 is NetworkResult.Success -> {

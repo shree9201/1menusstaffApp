@@ -8,6 +8,7 @@ import com.droptechsolution.shared.outletinfo.model.api.staff.StaffDetails
 import com.droptechsolution.shared.outletinfo.model.api.staff.StaffLogoutRequest
 import com.droptechsolution.shared.ui.common.user.StaffType
 import com.droptechsolution.shared.ui.common.user.UserStorage
+import com.droptechsolution.shared.ui.common.user.toInitials
 import com.droptechsolution.shared.ui.common.user.toStaffType
 import com.droptechsolution.shared.ui.common.user.toUserSession
 import com.droptechsolution.shared.push.OneSignalWrapper
@@ -120,14 +121,5 @@ class ProfileViewModel(
             StaffType.HKMGR,
             StaffType.HKSU,
         )
-    }
-}
-
-private fun String.toInitials(): String {
-    val parts = trim().split("\\s+".toRegex()).filter { it.isNotBlank() }
-    return when {
-        parts.isEmpty() -> "?"
-        parts.size == 1 -> parts.first().take(2).uppercase()
-        else -> "${parts.first().first()}${parts.last().first()}".uppercase()
     }
 }

@@ -18,8 +18,6 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.CheckboxDefaults
-import androidx.compose.material3.FilterChip
-import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Surface
@@ -351,14 +349,12 @@ private fun RoleSelector(
     selectedRole: LoginRole,
     onRoleSelected: (LoginRole) -> Unit
 ) {
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.spacedBy(8.dp)
-    ) {
-        val roles = listOf<String>("Staff","Manager","HR")
-        MenusDropdown(roles){selected->
-
-        }
-    }
+    MenusDropdown(
+        items = LoginRole.entries.map { it.label },
+        label = selectedRole.label,
+        onItemSelected = { label ->
+            LoginRole.entries.firstOrNull { it.label == label }?.let(onRoleSelected)
+        },
+    )
 }
 

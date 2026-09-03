@@ -40,6 +40,7 @@ import com.droptechsolution.shared.services.models.ServiceRequestRowUi
 import com.droptechsolution.shared.services.views.ActiveTasksSection
 import com.droptechsolution.shared.services.views.DepartmentOverviewSection
 import com.droptechsolution.shared.ui.common.user.LocalUserSession
+import com.droptechsolution.shared.ui.common.user.toInitials
 import com.droptechsolution.shared.ui.home.presenter.HomeViewModel
 import com.droptechsolution.shared.ui.theme.BG_LIGHT
 import com.droptechsolution.shared.ui.theme.MenusTeal
@@ -79,7 +80,7 @@ fun HomeScreen(
             userName = userInfo.value.userName,
             role = userSession?.staffTypeLabel?.takeIf { it.isNotBlank() } ?: userInfo.value.role,
             status = userInfo.value.status,
-            initials = userInfo.value.initials.ifBlank { userInfo.value.userName.take(2).uppercase() },
+            initials = userInfo.value.initials.ifBlank { userInfo.value.userName.toInitials() },
         )
 
         Spacer(modifier = Modifier.height(24.dp))
@@ -105,7 +106,7 @@ fun HomeScreen(
         }
 
         ActiveTasksSection(
-            tasks = activeTasks.take(1),
+            tasks = activeTasks.take(HOME_LIVE_TASKS_LIMIT),
             totalCount = activeTaskCount,
             onViewAllClick = onViewAllTasks,
             onTaskClick = onTaskClick,
@@ -113,6 +114,7 @@ fun HomeScreen(
     }
 }
 
+private const val HOME_LIVE_TASKS_LIMIT = 10
 
 @Composable
 fun DashboardHeaderRow(

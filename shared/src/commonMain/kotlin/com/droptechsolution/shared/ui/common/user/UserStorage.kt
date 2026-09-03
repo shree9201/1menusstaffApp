@@ -5,6 +5,7 @@ import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.stringPreferencesKey
 import com.droptechsolution.shared.outletinfo.model.api.staff.StaffDetails
+import com.droptechsolution.shared.services.models.StaffRequestScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.map
@@ -46,6 +47,15 @@ class UserStorage(
 
     suspend fun requireOutletId(): String =
         getLoggedInStaff().firstOrNull()?.userId.orEmpty()
+
+    suspend fun staffRequestScope(): StaffRequestScope {
+        val staff = getLoggedInStaff().firstOrNull()
+        val loginUserType = getLoginUserType().firstOrNull()
+        return StaffRequestScope(
+            loginUserType = loginUserType,
+            staffId = staff?.id,
+        )
+    }
 
     fun getLoggedInStaff(): Flow<StaffDetails?> =
         dataStore.data.map { preferences ->

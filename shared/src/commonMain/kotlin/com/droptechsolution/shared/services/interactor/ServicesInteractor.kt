@@ -10,9 +10,11 @@ import com.droptechsolution.shared.services.models.RequestDetailsUi
 import com.droptechsolution.shared.services.models.RoomRequest
 import com.droptechsolution.shared.services.models.RoomRequestFilter
 import com.droptechsolution.shared.services.models.RoomRequestsRequest
+import com.droptechsolution.shared.services.models.ServicesRequest
 import com.droptechsolution.shared.services.models.ServiceRequestRowUi
 import com.droptechsolution.shared.services.models.DepartmentOverviewStatUi
-import com.droptechsolution.shared.services.models.ServicesRequest
+import com.droptechsolution.shared.services.models.StaffRequestScope
+import com.droptechsolution.shared.services.models.withStaffScope
 import com.droptechsolution.shared.services.models.UpdateRequestBody
 import com.droptechsolution.shared.services.models.UpdateRequestResult
 import com.droptechsolution.shared.services.models.apiStatus
@@ -37,8 +39,18 @@ class ServicesInteractor(
     private val servicesAPI: IServicesAPI,
 ) {
 
-    suspend fun loadServiceStatusCounts(outletId: String): NetworkResult<List<DepartmentOverviewStatUi>> =
-        when (val result = servicesAPI.getServiceStatusCount(ServicesRequest(outletId))) {
+    suspend fun loadServiceStatusCounts(
+        outletId: String,
+        staffScope: StaffRequestScope = StaffRequestScope.Empty,
+    ): NetworkResult<List<DepartmentOverviewStatUi>> =
+        when (
+            val result = servicesAPI.getServiceStatusCount(
+                ServicesRequest(
+                    outletId = outletId,
+                    filterBy = staffScope.assignedFilters(),
+                ),
+            )
+        ) {
             is NetworkResult.Success -> {
                 if (result.data.status) {
                     NetworkResult.Success(result.data.toDepartmentOverviewStats())
@@ -52,12 +64,13 @@ class ServicesInteractor(
     suspend fun loadRoomRequestsForStatuses(
         outletId: String,
         statuses: List<String>,
+        staffScope: StaffRequestScope = StaffRequestScope.Empty,
     ): NetworkResult<List<RoomRequest>> {
-        if (statuses.isEmpty()) return loadRoomRequests(outletId)
+        if (statuses.isEmpty()) return loadRoomRequests(outletId, staffScope = staffScope)
 
         val merged = linkedMapOf<String, RoomRequest>()
         for (status in statuses) {
-            when (val result = loadRoomRequests(outletId, statusFilter(status))) {
+            when (val result = loadRoomRequests(outletId, statusFilter(status), staffScope)) {
                 is NetworkResult.Success -> result.data.forEach { merged[it.id] = it }
                 is NetworkResult.Error -> return result
             }
@@ -68,8 +81,18 @@ class ServicesInteractor(
     suspend fun loadRoomRequests(
         outletId: String,
         filters: List<RoomRequestFilter> = emptyList(),
+        staffScope: StaffRequestScope = StaffRequestScope.Empty,
+        limit: String? = null,
     ): NetworkResult<List<RoomRequest>> =
-        when (val result = servicesAPI.getRoomRequests(RoomRequestsRequest(outletId, filters))) {
+        when (
+            val result = servicesAPI.getRoomRequests(
+                RoomRequestsRequest(
+                    outletId = outletId,
+                    filterBy = filters.withStaffScope(staffScope),
+                    limit = limit,
+                ),
+            )
+        ) {
             is NetworkResult.Success -> mapResponse(result.data.status, result.data.toDomainList())
             is NetworkResult.Error -> result
         }
@@ -79,11 +102,13 @@ class ServicesInteractor(
         activeOnly: Boolean = false,
         statusFilter: String? = null,
         statusFilters: List<String> = emptyList(),
+        staffScope: StaffRequestScope = StaffRequestScope.Empty,
+        limit: String? = null,
     ): NetworkResult<TaskListData> {
         val filters = statusFilter?.let { statusFilter(it) }.orEmpty()
         val roomResult = when {
-            statusFilters.isNotEmpty() -> loadRoomRequestsForStatuses(outletId, statusFilters)
-            else -> loadRoomRequests(outletId, filters)
+            statusFilters.isNotEmpty() -> loadRoomRequestsForStatuses(outletId, statusFilters, staffScope)
+            else -> loadRoomRequests(outletId, filters, staffScope, limit)
         }
 
         val roomRequests = when (roomResult) {

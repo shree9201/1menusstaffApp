@@ -126,8 +126,42 @@ fun String.toTaskSubtitle(createdDate: String): String = when (uppercase()) {
 }
 
 fun String.toDisplayTime(): String {
+    val (hour, minute) = parseTimeOfDay() ?: return legacyDisplayTime()
+    return "${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}"
+}
+
+fun String.toMinutesOfDay(): Int? {
+    val (hour, minute) = parseTimeOfDay() ?: return null
+    return hour * 60 + minute
+}
+
+private fun String.legacyDisplayTime(): String {
     val timePart = substringAfter(" ", "")
     return if (timePart.length >= 5) timePart.take(5) else this
+}
+
+private fun String.parseTimeOfDay(): Pair<Int, Int>? {
+    val trimmed = trim()
+    val isPm = trimmed.contains("PM", ignoreCase = true)
+    val isAm = trimmed.contains("AM", ignoreCase = true)
+
+    val normalized = trimmed
+        .replace(Regex("(?i)\\s*AM"), "")
+        .replace(Regex("(?i)\\s*PM"), "")
+        .trim()
+
+    val timePart = normalized.substringAfter(" ", normalized)
+    val parts = timePart.split(":")
+    if (parts.size < 2) return null
+
+    var hour = parts[0].trim().toIntOrNull() ?: return null
+    val minute = parts[1].trim().toIntOrNull() ?: return null
+
+    if (isPm && hour in 1..11) hour += 12
+    if (isAm && hour == 12) hour = 0
+
+    if (hour !in 0..23 || minute !in 0..59) return null
+    return hour to minute
 }
 
 fun RoomRequest.isActiveTask(): Boolean = status.uppercase() !in setOf("CLOSE", "CLOSED")

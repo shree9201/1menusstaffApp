@@ -6,8 +6,10 @@ import com.droptechsolution.shared.masterdata.interactor.MasterDataInteractor
 import com.droptechsolution.shared.network.NetworkResult
 import com.droptechsolution.shared.services.interactor.ServicesInteractor
 import com.droptechsolution.shared.services.models.DepartmentOverviewStatUi
+import com.droptechsolution.shared.services.models.StaffRequestScope
 import com.droptechsolution.shared.services.models.ServiceRequestRowUi
 import com.droptechsolution.shared.ui.common.user.UserStorage
+import com.droptechsolution.shared.ui.common.user.toInitials
 import com.droptechsolution.shared.ui.common.user.toStaffType
 import com.droptechsolution.shared.ui.home.models.DashboardHeaderUi
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -42,7 +44,7 @@ class HomeViewModel(
             userStorage.getLoggedInStaff().collect { staffDetails ->
                 if (staffDetails != null) {
                     _loginState.value = DashboardHeaderUi(staffDetails.name).also {
-                        it.initials = staffDetails.name.take(2)
+                        it.initials = staffDetails.name.toInitials()
                         it.role = staffDetails.customised_position
                             ?.takeIf { it.isNotBlank() }
                             ?: staffDetails.type.toStaffType().defaultLabel()
@@ -78,21 +80,34 @@ class HomeViewModel(
             return
         }
 
-        loadStatusStats(outletId)
-        loadServices(outletId)
+        loadStatusStats(outletId, userStorage.staffRequestScope())
+        loadServices(outletId, userStorage.staffRequestScope())
     }
 
-    private suspend fun loadStatusStats(outletId: String) {
+    private suspend fun loadStatusStats(
+        outletId: String,
+        staffScope: StaffRequestScope,
+    ) {
         _isLoadingStats.value = true
-        when (val result = serviceInteractor.loadServiceStatusCounts(outletId)) {
+        when (val result = serviceInteractor.loadServiceStatusCounts(outletId, staffScope)) {
             is NetworkResult.Success -> _overviewStats.value = result.data
             is NetworkResult.Error -> _overviewStats.value = emptyList()
         }
         _isLoadingStats.value = false
     }
 
-    private suspend fun loadServices(outletId: String) {
-        when (val result = serviceInteractor.loadAllTasks(outletId, activeOnly = true)) {
+    private suspend fun loadServices(
+        outletId: String,
+        staffScope: StaffRequestScope,
+    ) {
+        when (
+            val result = serviceInteractor.loadAllTasks(
+                outletId = outletId,
+                activeOnly = true,
+                staffScope = staffScope,
+                limit = HOME_ROOM_REQUESTS_LIMIT,
+            )
+        ) {
             is NetworkResult.Success -> {
                 _activeTaskCount.value = result.data.rows.size
                 _activeTasks.value = result.data.rows
@@ -102,5 +117,9 @@ class HomeViewModel(
                 _activeTasks.value = emptyList()
             }
         }
+    }
+
+    private companion object {
+        const val HOME_ROOM_REQUESTS_LIMIT = "0,10"
     }
 }

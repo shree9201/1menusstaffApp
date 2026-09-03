@@ -45,7 +45,9 @@ enum class RequestStatusDisplay {
 
 fun RequestDetails.toUi(outletService: OutletService? = null): RequestDetailsUi {
     val service = serviceDetails ?: request.serviceDetails.firstOrNull() ?: outletService
-    val displayTitle = request.displayTitle()
+    val displayTitle = service?.title?.takeIf { it.isNotBlank() }
+        ?: request.title.takeIf { it.isNotBlank() }
+        ?: "Service Request"
     val priority = service?.priority?.toTaskPriority() ?: TaskPriority.MEDIUM
     val department = service?.actionBy.toDepartmentLabel()
     val reminderDuration = service.toReminderDurationLabel()
@@ -252,13 +254,4 @@ private fun computeDurationLabel(previous: String, current: String): String? {
     val diff = (currentMinutes - prevMinutes).coerceAtLeast(0)
     if (diff == 0) return null
     return "+${diff}m from previous"
-}
-
-private fun String.toMinutesOfDay(): Int? {
-    val segment = substringAfter(" ", "").ifBlank { this }
-    val parts = segment.split(":")
-    if (parts.size < 2) return null
-    val hours = parts[0].toIntOrNull() ?: return null
-    val minutes = parts[1].toIntOrNull() ?: return null
-    return hours * 60 + minutes
 }

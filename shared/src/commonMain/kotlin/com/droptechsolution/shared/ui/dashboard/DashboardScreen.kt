@@ -28,6 +28,9 @@ import com.droptechsolution.shared.navigation.MyAttendanceRoute
 import com.droptechsolution.shared.navigation.HomeRoute
 import com.droptechsolution.shared.navigation.ProfileRoute
 import com.droptechsolution.shared.navigation.ReportOperationalIssueRoute
+import com.droptechsolution.shared.navigation.StaffAddRoute
+import com.droptechsolution.shared.navigation.StaffDetailRoute
+import com.droptechsolution.shared.navigation.StaffEditRoute
 import com.droptechsolution.shared.navigation.StaffRoute
 import com.droptechsolution.shared.navigation.TaskDetailRoute
 import com.droptechsolution.shared.navigation.TasksRoute
@@ -42,6 +45,8 @@ import com.droptechsolution.shared.ui.profile.updateprofile.views.UpdateProfileS
 import com.droptechsolution.shared.ui.profile.help.ContactItSupportScreen
 import com.droptechsolution.shared.ui.profile.help.HelpSupportScreen
 import com.droptechsolution.shared.ui.profile.help.ReportOperationalIssueScreen
+import com.droptechsolution.shared.ui.staff.views.StaffDetailsScreen
+import com.droptechsolution.shared.ui.staff.views.StaffFormScreen
 import com.droptechsolution.shared.ui.staff.views.StaffScreen
 import com.droptechsolution.shared.ui.tasks.views.TasksScreen
 import com.droptechsolution.shared.ui.theme.MenusTheme
@@ -135,7 +140,11 @@ fun DashboardScreen(
                     )
                 }
                 composable<StaffRoute> {
-                    StaffScreen(modifier = Modifier.fillMaxSize())
+                    StaffScreen(
+                        modifier = Modifier.fillMaxSize(),
+                        onStaffClick = dashboardNavigator::goToStaffDetail,
+                        onAddStaff = dashboardNavigator::goToAddStaff,
+                    )
                 }
                 composable<ProfileRoute> {
                     ProfileScreen(
@@ -183,6 +192,29 @@ fun DashboardScreen(
                     ContactItSupportScreen(
                         modifier = Modifier.fillMaxSize(),
                         onBack = dashboardNavigator::navigateUp,
+                    )
+                }
+                composable<StaffDetailRoute> { backStackEntry ->
+                    val route = backStackEntry.toRoute<StaffDetailRoute>()
+                    StaffDetailsScreen(
+                        staffId = route.staffId,
+                        onBack = dashboardNavigator::navigateUp,
+                        onEdit = dashboardNavigator::goToEditStaff,
+                        modifier = Modifier.fillMaxSize(),
+                    )
+                }
+                composable<StaffAddRoute> {
+                    StaffFormScreen(
+                        onBack = dashboardNavigator::navigateUp,
+                        modifier = Modifier.fillMaxSize(),
+                    )
+                }
+                composable<StaffEditRoute> { backStackEntry ->
+                    val route = backStackEntry.toRoute<StaffEditRoute>()
+                    StaffFormScreen(
+                        staffId = route.staffId,
+                        onBack = dashboardNavigator::navigateUp,
+                        modifier = Modifier.fillMaxSize(),
                     )
                 }
                 composable<TaskDetailRoute> { backStackEntry ->

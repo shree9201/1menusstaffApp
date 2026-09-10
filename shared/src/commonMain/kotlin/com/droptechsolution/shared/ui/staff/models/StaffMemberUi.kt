@@ -1,6 +1,9 @@
 package com.droptechsolution.shared.ui.staff.models
 
 import com.droptechsolution.shared.outletinfo.model.api.staff.StaffDetails
+import com.droptechsolution.shared.ui.common.user.toInitials
+import com.droptechsolution.shared.ui.common.user.toStaffDepartment
+import com.droptechsolution.shared.ui.common.user.toStaffType
 
 enum class StaffAvailability {
     Available,
@@ -12,6 +15,23 @@ data class StaffMemberUi(
     val id: String,
     val name: String,
     val subtitle: String,
+    val availability: StaffAvailability,
+    val badgeLabel: String,
+)
+
+data class StaffDetailsUi(
+    val id: String,
+    val name: String,
+    val initials: String,
+    val type: String,
+    val roleLabel: String,
+    val department: String,
+    val departmentLabel: String,
+    val username: String,
+    val email: String,
+    val mobile: String,
+    val position: String,
+    val status: String,
     val availability: StaffAvailability,
     val badgeLabel: String,
 )
@@ -42,6 +62,30 @@ fun StaffDetails.toStaffMemberUi(): StaffMemberUi {
         subtitle = subtitle,
         availability = availability,
         badgeLabel = badgeLabel,
+    )
+}
+
+fun StaffDetails.toStaffDetailsUi(): StaffDetailsUi {
+    val member = toStaffMemberUi()
+    val roleLabel = customised_position?.takeIf { it.isNotBlank() }
+        ?: type.toStaffType().defaultLabel()
+    val departmentLabel = department.orEmpty().toStaffDepartment().defaultLabel()
+        .ifBlank { department.orEmpty() }
+    return StaffDetailsUi(
+        id = id,
+        name = name,
+        initials = name.toInitials(),
+        type = type,
+        roleLabel = roleLabel,
+        department = department.orEmpty(),
+        departmentLabel = departmentLabel.ifBlank { "—" },
+        username = username.ifBlank { "—" },
+        email = email.orEmpty().ifBlank { "—" },
+        mobile = mobile.orEmpty().ifBlank { "—" },
+        position = customised_position.orEmpty().ifBlank { roleLabel },
+        status = status.ifBlank { member.badgeLabel },
+        availability = member.availability,
+        badgeLabel = member.badgeLabel,
     )
 }
 

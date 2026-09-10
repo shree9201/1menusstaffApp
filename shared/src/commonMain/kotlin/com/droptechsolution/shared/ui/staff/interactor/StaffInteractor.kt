@@ -2,8 +2,11 @@ package com.droptechsolution.shared.ui.staff.interactor
 
 import com.droptechsolution.shared.network.NetworkError
 import com.droptechsolution.shared.network.NetworkResult
+import com.droptechsolution.shared.outletinfo.model.api.staff.AddStaffRequest
 import com.droptechsolution.shared.outletinfo.model.api.staff.ChangePasswordRequest
+import com.droptechsolution.shared.outletinfo.model.api.staff.DeleteStaffRequest
 import com.droptechsolution.shared.outletinfo.model.api.staff.UpdateProfileRequest
+import com.droptechsolution.shared.outletinfo.model.api.staff.UpdateStaffRequest
 import com.droptechsolution.shared.outletinfo.model.api.staff.StaffAPI
 import com.droptechsolution.shared.outletinfo.model.api.staff.StaffAttendanceDetail
 import com.droptechsolution.shared.outletinfo.model.api.staff.StaffAttendancesRequest
@@ -19,6 +22,134 @@ class StaffInteractor(
             is NetworkResult.Success -> NetworkResult.Success(result.data.value)
             is NetworkResult.Error -> result
         }
+
+    suspend fun deleteStaff(
+        outletId: String,
+        staffId: String,
+    ): NetworkResult<String> {
+        val outletIdInt = outletId.toIntOrNull()
+            ?: return invalidIdError("Invalid outlet ID")
+        val staffIdInt = staffId.toIntOrNull()
+            ?: return invalidIdError("Invalid staff ID")
+
+        return when (
+            val result = staffAPI.deleteStaff(
+                DeleteStaffRequest(
+                    outletId = outletIdInt,
+                    staffId = staffIdInt,
+                ),
+            )
+        ) {
+            is NetworkResult.Success -> {
+                if (result.data.isSuccessful()) {
+                    NetworkResult.Success(
+                        result.data.value?.takeIf { it.isNotBlank() } ?: "Staff deleted successfully",
+                    )
+                } else {
+                    NetworkResult.Error(
+                        NetworkError.Unknown(
+                            result.data.value?.takeIf { it.isNotBlank() } ?: "Unable to delete staff",
+                        ),
+                    )
+                }
+            }
+            is NetworkResult.Error -> result
+        }
+    }
+
+    suspend fun addStaff(
+        outletId: String,
+        actingStaffId: String,
+        name: String,
+        email: String,
+        mobile: String,
+        username: String,
+        password: String,
+        department: String,
+        type: String,
+    ): NetworkResult<String> {
+        val outletIdInt = outletId.toIntOrNull()
+            ?: return invalidIdError("Invalid outlet ID")
+        val actingStaffIdInt = actingStaffId.toIntOrNull()
+            ?: return invalidIdError("Invalid staff ID")
+
+        return when (
+            val result = staffAPI.addStaff(
+                AddStaffRequest(
+                    outletId = outletIdInt,
+                    staffId = actingStaffIdInt,
+                    name = name,
+                    email = email,
+                    mobile = mobile,
+                    username = username,
+                    password = password,
+                    department = department,
+                    type = type,
+                ),
+            )
+        ) {
+            is NetworkResult.Success -> {
+                if (result.data.isSuccessful()) {
+                    NetworkResult.Success(
+                        result.data.value?.takeIf { it.isNotBlank() } ?: "Staff added successfully",
+                    )
+                } else {
+                    NetworkResult.Error(
+                        NetworkError.Unknown(
+                            result.data.value?.takeIf { it.isNotBlank() } ?: "Unable to add staff",
+                        ),
+                    )
+                }
+            }
+            is NetworkResult.Error -> result
+        }
+    }
+
+    suspend fun updateStaff(
+        outletId: String,
+        staffId: String,
+        name: String,
+        email: String,
+        mobile: String,
+        username: String,
+        department: String,
+        type: String,
+    ): NetworkResult<String> {
+        val outletIdInt = outletId.toIntOrNull()
+            ?: return invalidIdError("Invalid outlet ID")
+        val staffIdInt = staffId.toIntOrNull()
+            ?: return invalidIdError("Invalid staff ID")
+
+        return when (
+            val result = staffAPI.updateStaff(
+                UpdateStaffRequest(
+                    outletId = outletIdInt,
+                    staffId = staffIdInt,
+                    name = name,
+                    email = email,
+                    mobile = mobile,
+                    username = username,
+                    department = department,
+                    type = type,
+                ),
+            )
+        ) {
+            is NetworkResult.Success -> {
+                if (result.data.isSuccessful()) {
+                    NetworkResult.Success(
+                        result.data.value?.takeIf { it.isNotBlank() } ?: "Staff updated successfully",
+                    )
+                } else {
+                    NetworkResult.Error(
+                        NetworkError.Unknown(
+                            result.data.value?.takeIf { it.isNotBlank() } ?: "Unable to update staff",
+                        ),
+                    )
+                }
+            }
+            is NetworkResult.Error -> result
+        }
+    }
 
     suspend fun loadStaffAttendances(
         outletId: String,

@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.droptechsolution.shared.network.NetworkResult
 import com.droptechsolution.shared.ui.common.user.UserStorage
+import com.droptechsolution.shared.ui.staff.StaffListRefreshNotifier
 import com.droptechsolution.shared.ui.staff.interactor.StaffInteractor
 import com.droptechsolution.shared.ui.staff.models.StaffMemberUi
 import com.droptechsolution.shared.ui.staff.models.StaffSummaryUi
@@ -16,6 +17,7 @@ import kotlinx.coroutines.launch
 class StaffViewModel(
     private val staffInteractor: StaffInteractor,
     private val userStorage: UserStorage,
+    private val staffListRefreshNotifier: StaffListRefreshNotifier,
 ) : ViewModel() {
 
     private val _staffMembers = MutableStateFlow<List<StaffMemberUi>>(emptyList())
@@ -31,6 +33,14 @@ class StaffViewModel(
     val errorMessage = _errorMessage.asStateFlow()
 
     private var hasLoaded = false
+
+    init {
+        viewModelScope.launch {
+            staffListRefreshNotifier.events.collect {
+                loadStaff(forceRefresh = true)
+            }
+        }
+    }
 
     fun loadStaff(forceRefresh: Boolean = false) {
         if (hasLoaded && !forceRefresh && _staffMembers.value.isNotEmpty()) return

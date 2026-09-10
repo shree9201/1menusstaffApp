@@ -19,6 +19,27 @@ class StaffAPI(
             setBody(request)
         }
 
+    suspend fun addStaff(
+        request: AddStaffRequest,
+    ): NetworkResult<StaffMutationResponse> =
+        networkClient.post("${URN.SERVER}${URN.STAFF_ADD}") {
+            setBody(request)
+        }
+
+    suspend fun updateStaff(
+        request: UpdateStaffRequest,
+    ): NetworkResult<StaffMutationResponse> =
+        networkClient.post("${URN.SERVER}${URN.STAFF_UPDATE}") {
+            setBody(request)
+        }
+
+    suspend fun deleteStaff(
+        request: DeleteStaffRequest,
+    ): NetworkResult<DeleteStaffResponse> =
+        networkClient.post("${URN.SERVER}${URN.STAFF_DELETE}") {
+            setBody(request)
+        }
+
     suspend fun staffAttendances(
         request: StaffAttendancesRequest,
     ): NetworkResult<StaffAttendancesResponse> =

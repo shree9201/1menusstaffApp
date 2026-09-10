@@ -64,6 +64,18 @@ class DashboardNavigator(
 
     fun goToStaff() = navigateToTab(StaffRoute)
 
+    fun goToStaffDetail(staffId: String) {
+        navController.navigate(StaffDetailRoute(staffId = staffId))
+    }
+
+    fun goToAddStaff() {
+        navController.navigate(StaffAddRoute)
+    }
+
+    fun goToEditStaff(staffId: String) {
+        navController.navigate(StaffEditRoute(staffId = staffId))
+    }
+
     fun goToTaskDetail(task: ServiceRequestRowUi) {
         navController.navigate(
             TaskDetailRoute(

@@ -1,5 +1,6 @@
 package com.droptechsolution.shared.ui.staff.views
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -26,6 +27,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.droptechsolution.shared.common.ui.GradientButton
 import com.droptechsolution.shared.ui.staff.models.StaffAvailability
 import com.droptechsolution.shared.ui.staff.models.StaffMemberUi
 import com.droptechsolution.shared.ui.staff.models.StaffSummaryUi
@@ -33,6 +35,7 @@ import com.droptechsolution.shared.ui.staff.presenter.StaffViewModel
 import com.droptechsolution.shared.ui.theme.BG_LIGHT
 import com.droptechsolution.shared.ui.theme.BG_WHITE
 import com.droptechsolution.shared.ui.theme.BLACK
+import com.droptechsolution.shared.ui.theme.MenusGradients
 import com.droptechsolution.shared.ui.theme.MenusSuccess
 import com.droptechsolution.shared.ui.theme.MenusWarning
 import com.droptechsolution.shared.ui.theme.TextMuted
@@ -42,6 +45,8 @@ import org.koin.compose.viewmodel.koinViewModel
 @Composable
 fun StaffScreen(
     modifier: Modifier = Modifier,
+    onStaffClick: (String) -> Unit = {},
+    onAddStaff: () -> Unit = {},
     viewModel: StaffViewModel = koinViewModel(),
 ) {
     LaunchedEffect(Unit) {
@@ -72,6 +77,15 @@ fun StaffScreen(
             color = TextMuted,
             fontSize = 14.sp,
         )
+        Spacer(modifier = Modifier.height(16.dp))
+        GradientButton(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(48.dp),
+            text = "Add Staff",
+            gradient = MenusGradients.appBackground,
+            onClick = onAddStaff,
+        )
         Spacer(modifier = Modifier.height(20.dp))
 
         when {
@@ -96,7 +110,10 @@ fun StaffScreen(
                 StaffSummaryCard(summary = summary)
                 Spacer(modifier = Modifier.height(16.dp))
                 staffMembers.forEach { member ->
-                    StaffMemberCard(member = member)
+                    StaffMemberCard(
+                        member = member,
+                        onClick = { onStaffClick(member.id) },
+                    )
                     Spacer(modifier = Modifier.height(12.dp))
                 }
             }
@@ -166,7 +183,10 @@ private fun SummaryRow(
 }
 
 @Composable
-private fun StaffMemberCard(member: StaffMemberUi) {
+private fun StaffMemberCard(
+    member: StaffMemberUi,
+    onClick: () -> Unit,
+) {
     val badgeBackground = when (member.availability) {
         StaffAvailability.Available -> Color(0xFFDCFCE7)
         StaffAvailability.Busy -> Color(0xFFFFEDD5)
@@ -183,6 +203,7 @@ private fun StaffMemberCard(member: StaffMemberUi) {
             .fillMaxWidth()
             .clip(RoundedCornerShape(16.dp))
             .background(BG_WHITE)
+            .clickable(onClick = onClick)
             .padding(horizontal = 20.dp, vertical = 18.dp),
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically,

@@ -1,5 +1,6 @@
 package com.droptechsolution.shared.ui.home.views
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -55,6 +56,7 @@ fun HomeScreen(
     onViewAllTasks: () -> Unit = {},
     onOverviewClick: (DepartmentOverviewStatUi) -> Unit = {},
     onTaskClick: (ServiceRequestRowUi) -> Unit = {},
+    onNotificationsClick: () -> Unit = {},
     viewModel: HomeViewModel = koinViewModel(),
 ) {
     LaunchedEffect(Unit) {
@@ -81,6 +83,7 @@ fun HomeScreen(
             role = userSession?.staffTypeLabel?.takeIf { it.isNotBlank() } ?: userInfo.value.role,
             status = userInfo.value.status,
             initials = userInfo.value.initials.ifBlank { userInfo.value.userName.toInitials() },
+            onNotificationsClick = onNotificationsClick,
         )
 
         Spacer(modifier = Modifier.height(24.dp))
@@ -122,6 +125,7 @@ fun DashboardHeaderRow(
     role: String = "Housekeeping",
     status: String = "Available",
     initials: String = "RK",
+    onNotificationsClick: () -> Unit = {},
     modifier: Modifier = Modifier,
 ) {
     Row(
@@ -210,7 +214,8 @@ fun DashboardHeaderRow(
         Spacer(modifier = Modifier.width(12.dp))
 
         NotificationBellButton(
-            hasUnread = true
+            hasUnread = true,
+            onClick = onNotificationsClick,
         )
     }
 }
@@ -218,10 +223,13 @@ fun DashboardHeaderRow(
 @Composable
 fun NotificationBellButton(
     hasUnread: Boolean,
+    onClick: () -> Unit = {},
     modifier: Modifier = Modifier,
 ) {
     Box(
-        modifier = modifier.size(64.dp),
+        modifier = modifier
+            .size(64.dp)
+            .clickable(onClick = onClick),
         contentAlignment = Alignment.Center,
     ) {
         Box(

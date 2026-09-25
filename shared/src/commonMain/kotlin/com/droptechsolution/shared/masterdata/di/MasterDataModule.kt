@@ -8,5 +8,5 @@ import org.koin.dsl.module
 
 val masterDataModule = module {
     single { MasterDataApi(get()) } bind IMasterDataApi::class
-    single { MasterDataInteractor(get(), get()) }
+    single { MasterDataInteractor(get()) }
 }

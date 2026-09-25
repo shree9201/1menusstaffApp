@@ -138,6 +138,7 @@ private val networkJson = Json {
 
 enum class RequestAction {
     ACCEPT,
+    ASSIGN,
     START,
     PASS,
     PAUSE,
@@ -148,6 +149,7 @@ enum class RequestAction {
 
 fun RequestAction.apiStatus(): String = when (this) {
     RequestAction.ACCEPT -> "ACCEPTED"
+    RequestAction.ASSIGN -> "ASSIGN"
     RequestAction.START -> "STARTED"
     RequestAction.PASS -> "PASS"
     RequestAction.PAUSE -> "HOLD"
@@ -156,8 +158,12 @@ fun RequestAction.apiStatus(): String = when (this) {
     RequestAction.REJECT -> "REJECTED"
 }
 
-fun RequestAction.defaultComment(staffName: String): String = when (this) {
+fun RequestAction.defaultComment(
+    staffName: String,
+    assigneeName: String = staffName,
+): String = when (this) {
     RequestAction.ACCEPT -> "Request Accepted by $staffName"
+    RequestAction.ASSIGN -> "Request assigned to $assigneeName by $staffName"
     RequestAction.START -> "Work started by $staffName"
     RequestAction.PASS -> "Request passed by $staffName"
     RequestAction.PAUSE -> "Service paused by $staffName"

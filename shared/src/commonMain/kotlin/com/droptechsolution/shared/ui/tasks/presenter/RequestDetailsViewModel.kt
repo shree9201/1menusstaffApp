@@ -15,7 +15,10 @@ import com.droptechsolution.shared.services.models.RequestSource
 import com.droptechsolution.shared.services.sla.ServiceSlaProgressUi
 import com.droptechsolution.shared.services.sla.ServiceSlaTracker
 import com.droptechsolution.shared.ui.common.GENERIC_ERROR_MESSAGE
+import com.droptechsolution.shared.ui.common.user.StaffDepartment
 import com.droptechsolution.shared.ui.common.user.UserStorage
+import com.droptechsolution.shared.ui.common.user.toStaffDepartment
+import com.droptechsolution.shared.ui.staff.interactor.StaffInteractor
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -26,11 +29,17 @@ import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 
+data class AssignStaffOption(
+    val id: String,
+    val name: String,
+)
+
 class RequestDetailsViewModel(
     private val servicesInteractor: ServicesInteractor,
     private val userStorage: UserStorage,
     private val slaTracker: ServiceSlaTracker,
     private val taskListRefreshNotifier: TaskListRefreshNotifier,
+    private val staffInteractor: StaffInteractor,
 ) : ViewModel() {
 
     private val _details = MutableStateFlow<RequestDetailsUi?>(null)
@@ -51,8 +60,12 @@ class RequestDetailsViewModel(
     private val _slaProgress = MutableStateFlow<ServiceSlaProgressUi?>(null)
     val slaProgress = _slaProgress.asStateFlow()
 
+    private val _assignStaffOptions = MutableStateFlow<List<AssignStaffOption>>(emptyList())
+    val assignStaffOptions = _assignStaffOptions.asStateFlow()
+
     private var currentRequestId: String = ""
     private var currentSource: RequestSource = RequestSource.ROOM
+    private var actorDepartment: StaffDepartment = StaffDepartment.STAFF
     private var slaTickerJob: Job? = null
 
     fun loadDetails(requestId: String, source: RequestSource) {
@@ -61,6 +74,7 @@ class RequestDetailsViewModel(
         viewModelScope.launch {
             _isLoading.value = true
             _errorMessage.value = null
+            actorDepartment = resolveActorDepartment()
 
             val outletId = userStorage.requireOutletId()
             if (outletId.isBlank()) {
@@ -68,6 +82,12 @@ class RequestDetailsViewModel(
                 _errorMessage.value = "Outlet ID not found. Please log in again."
                 _isLoading.value = false
                 return@launch
+            }
+
+            if (actorDepartment.canAssignRequests()) {
+                loadAssignableStaff(outletId)
+            } else {
+                _assignStaffOptions.value = emptyList()
             }
 
             when (
@@ -90,9 +110,24 @@ class RequestDetailsViewModel(
         }
     }
 
-    fun performAction(action: RequestAction) {
+    fun performAction(action: RequestAction, assignedToId: String? = null) {
         if (currentSource != RequestSource.ROOM || currentRequestId.isBlank()) return
+        if (action == RequestAction.ASSIGN) {
+            val staffId = assignedToId?.takeIf { it.isNotBlank() }
+            if (staffId == null) {
+                viewModelScope.launch { _toastEvents.emit("Please select a staff member") }
+                return
+            }
+            submitAction(action, assignedToId = staffId)
+            return
+        }
+        submitAction(action)
+    }
 
+    private fun submitAction(
+        action: RequestAction,
+        assignedToId: String? = null,
+    ) {
         viewModelScope.launch {
             _isUpdating.value = true
             _errorMessage.value = null
@@ -111,12 +146,18 @@ class RequestDetailsViewModel(
                 return@launch
             }
 
+            val assignee = assignedToId?.let { id ->
+                _assignStaffOptions.value.firstOrNull { it.id == id }
+            }
+
             when (
                 val result = servicesInteractor.updateRequest(
                     outletId = outletId,
                     requestId = currentRequestId,
                     action = action,
                     user = staff,
+                    assignedTo = assignedToId ?: staff.id,
+                    assigneeName = assignee?.name ?: staff.name,
                 )
             ) {
                 is NetworkResult.Success -> {
@@ -132,6 +173,7 @@ class RequestDetailsViewModel(
                             RequestAction.HOLD_ESCALATE,
                             -> stopSlaTracking(details.id)
                             RequestAction.ACCEPT,
+                            RequestAction.ASSIGN,
                             RequestAction.PASS,
                             -> Unit
                         }
@@ -153,12 +195,14 @@ class RequestDetailsViewModel(
         _details.value = current.copy(
             status = updatedStatus,
             statusDisplay = updatedStatus.toStatusDisplay(),
-            availableActions = updatedStatus.toAvailableActions(),
+            availableActions = updatedStatus.toAvailableActions(actorDepartment),
         )
     }
 
     private suspend fun applyDetails(details: RequestDetailsUi) {
-        _details.value = details
+        _details.value = details.copy(
+            availableActions = details.status.toAvailableActions(actorDepartment),
+        )
         if (details.reminderTimeMinutes <= 0) {
             _slaProgress.value = null
             stopSlaTicker()
@@ -223,6 +267,32 @@ class RequestDetailsViewModel(
             workStartedAt = details.workStartedAt,
             statusDisplay = details.statusDisplay,
         )
+    }
+
+    private suspend fun resolveActorDepartment(): StaffDepartment {
+        val loginType = userStorage.getLoginUserType().firstOrNull().orEmpty().toStaffDepartment()
+        if (loginType != StaffDepartment.UNKNOWN) return loginType
+        return userStorage.getLoggedInStaff().firstOrNull()
+            ?.department
+            .orEmpty()
+            .toStaffDepartment()
+    }
+
+    private suspend fun loadAssignableStaff(outletId: String) {
+        val loggedInId = userStorage.getLoggedInStaff().firstOrNull()?.id
+        when (val result = staffInteractor.loadStaffList(outletId)) {
+            is NetworkResult.Success -> {
+                val staffMembers = result.data.filter { it.id != loggedInId }
+                val operationalStaff = staffMembers.filter {
+                    it.department.orEmpty().equals("STAFF", ignoreCase = true)
+                }
+                val options = (operationalStaff.ifEmpty { staffMembers }).map {
+                    AssignStaffOption(id = it.id, name = it.name)
+                }
+                _assignStaffOptions.value = options
+            }
+            is NetworkResult.Error -> _assignStaffOptions.value = emptyList()
+        }
     }
 
     private fun showError(error: NetworkError) {

@@ -6,6 +6,8 @@ import com.droptechsolution.shared.network.NetworkLogger
 import com.droptechsolution.shared.network.NETWORK_LOG_TAG
 import com.droptechsolution.shared.network.NetworkResult
 import com.droptechsolution.shared.network.URN
+import com.droptechsolution.shared.services.models.ActivityListRequest
+import com.droptechsolution.shared.services.models.ActivityListResponse
 import com.droptechsolution.shared.services.models.OutletServicesResponse
 import com.droptechsolution.shared.services.models.RequestDetailsRequest
 import com.droptechsolution.shared.services.models.RequestDetailsResponse
@@ -25,6 +27,7 @@ interface IServicesAPI {
     suspend fun getRequestDetails(request: RequestDetailsRequest): NetworkResult<RequestDetailsResponse>
     suspend fun updateRequest(request: UpdateRequestBody): NetworkResult<UpdateRequestResponse>
     suspend fun getServiceStatusCount(request: ServicesRequest): NetworkResult<ServiceStatusCountResponse>
+    suspend fun getActivityList(request: ActivityListRequest): NetworkResult<ActivityListResponse>
 }
 
 class ServicesAPI(
@@ -82,6 +85,13 @@ class ServicesAPI(
         request: ServicesRequest,
     ): NetworkResult<ServiceStatusCountResponse> =
         networkClient.post("${URN.SERVER}${URN.SERVICE_STATUS_COUNT}") {
+            setBody(request)
+        }
+
+    override suspend fun getActivityList(
+        request: ActivityListRequest,
+    ): NetworkResult<ActivityListResponse> =
+        networkClient.post("${URN.SERVER}${URN.GET_ACTIVITY_LIST}") {
             setBody(request)
         }
 }

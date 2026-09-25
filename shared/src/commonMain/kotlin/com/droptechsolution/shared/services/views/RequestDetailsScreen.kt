@@ -25,17 +25,23 @@ import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material.icons.filled.Pause
+import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.PlayArrow
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -44,12 +50,14 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.droptechsolution.shared.common.ui.MenusKeyValueDropdown
 import com.droptechsolution.shared.services.models.RequestAction
 import com.droptechsolution.shared.services.models.RequestDetailsUi
 import com.droptechsolution.shared.services.models.RequestSource
 import com.droptechsolution.shared.services.models.RequestStatusDisplay
 import com.droptechsolution.shared.services.models.TimelineStepUi
 import com.droptechsolution.shared.ui.common.ToastMessageEffect
+import com.droptechsolution.shared.ui.tasks.presenter.AssignStaffOption
 import com.droptechsolution.shared.ui.tasks.presenter.RequestDetailsViewModel
 import com.droptechsolution.shared.ui.theme.BG_LIGHT
 import com.droptechsolution.shared.ui.theme.BLACK
@@ -88,6 +96,7 @@ fun RequestDetailsScreen(
     val isLoading by viewModel.isLoading.collectAsState()
     val isUpdating by viewModel.isUpdating.collectAsState()
     val errorMessage by viewModel.errorMessage.collectAsState()
+    val assignStaffOptions by viewModel.assignStaffOptions.collectAsState()
     val scrollState = rememberScrollState()
     val scope = rememberCoroutineScope()
 
@@ -137,7 +146,9 @@ fun RequestDetailsScreen(
                         TaskActionsSection(
                             actions = details!!.availableActions,
                             isUpdating = isUpdating,
-                            onAction = viewModel::performAction,
+                            assignStaffOptions = assignStaffOptions,
+                            onAction = { action -> viewModel.performAction(action) },
+                            onAssign = { staffId -> viewModel.performAction(RequestAction.ASSIGN, staffId) },
                         )
                     }
                     Spacer(modifier = Modifier.height(88.dp))
@@ -234,6 +245,7 @@ private fun TaskStatusPill(status: RequestStatusDisplay) {
 
 private fun RequestStatusDisplay.toPillStyle(): Triple<Color, Color, String> = when (this) {
     RequestStatusDisplay.NEW -> Triple(Color(0xFFFFF7E6), Color(0xFFD97706), "New")
+    RequestStatusDisplay.ASSIGNED -> Triple(Color(0xFFE8F1FF), MenusPrimary, "Assigned")
     RequestStatusDisplay.ACCEPTED -> Triple(Color(0xFFE6F7F1), MenusTeal, "Accepted")
     RequestStatusDisplay.IN_PROGRESS -> Triple(Color(0xFFE8F1FF), MenusPrimary, "In Progress")
     RequestStatusDisplay.ON_HOLD -> Triple(Color(0xFFFFF4E8), ActionPauseBorder, "On Hold")
@@ -405,8 +417,12 @@ private fun TimelineStepIndicator(
 private fun TaskActionsSection(
     actions: List<RequestAction>,
     isUpdating: Boolean,
+    assignStaffOptions: List<AssignStaffOption>,
     onAction: (RequestAction) -> Unit,
+    onAssign: (String) -> Unit,
 ) {
+    var showAssignDialog by remember { mutableStateOf(false) }
+
     Column(modifier = Modifier.fillMaxWidth()) {
         Text(
             text = "Choose action",
@@ -427,25 +443,108 @@ private fun TaskActionsSection(
             }
         }
 
-        if (RequestAction.HOLD_ESCALATE in actions && RequestAction.START in actions) {
+        if (RequestAction.ASSIGN in actions) {
+            ActionButton(
+                label = "Assign to Staff",
+                icon = Icons.Default.Person,
+                background = ActionBlueBg,
+                contentColor = ActionBlue,
+                borderColor = ActionBlue,
+                enabled = !isUpdating,
+                onClick = { showAssignDialog = true },
+            )
+            Spacer(modifier = Modifier.height(10.dp))
+        }
+
+        val remainingActions = actions.filter { it != RequestAction.ASSIGN }
+        if (RequestAction.HOLD_ESCALATE in remainingActions && RequestAction.START in remainingActions) {
             AcceptedActionsSection(
                 enabled = !isUpdating,
                 onAction = onAction,
             )
-        } else if (RequestAction.COMPLETE in actions && RequestAction.PAUSE in actions) {
+        } else if (RequestAction.COMPLETE in remainingActions && RequestAction.PAUSE in remainingActions) {
             InProgressActionsSection(
-                actions = actions,
+                actions = remainingActions,
                 enabled = !isUpdating,
                 onAction = onAction,
             )
-        } else {
+        } else if (remainingActions.isNotEmpty()) {
             DefaultActionsSection(
-                actions = actions,
+                actions = remainingActions,
                 enabled = !isUpdating,
                 onAction = onAction,
             )
         }
     }
+
+    if (showAssignDialog) {
+        AssignStaffDialog(
+            staffOptions = assignStaffOptions,
+            onDismiss = { showAssignDialog = false },
+            onConfirm = { staffId ->
+                showAssignDialog = false
+                onAssign(staffId)
+            },
+        )
+    }
+}
+
+@Composable
+private fun AssignStaffDialog(
+    staffOptions: List<AssignStaffOption>,
+    onDismiss: () -> Unit,
+    onConfirm: (String) -> Unit,
+) {
+    var selectedStaffId by remember(staffOptions) {
+        mutableStateOf(staffOptions.firstOrNull()?.id.orEmpty())
+    }
+
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = {
+            Text(
+                text = "Assign to Staff",
+                color = BLACK,
+                fontWeight = FontWeight.Bold,
+            )
+        },
+        text = {
+            if (staffOptions.isEmpty()) {
+                Text(
+                    text = "No staff members available to assign.",
+                    color = TextMuted,
+                )
+            } else {
+                Column {
+                    Text(
+                        text = "Select a staff member",
+                        color = TextMuted,
+                        fontSize = 14.sp,
+                    )
+                    Spacer(modifier = Modifier.height(12.dp))
+                    MenusKeyValueDropdown(
+                        options = staffOptions.map { it.id to it.name },
+                        selectedKey = selectedStaffId,
+                        label = "Select staff",
+                        onKeySelected = { selectedStaffId = it },
+                    )
+                }
+            }
+        },
+        confirmButton = {
+            TextButton(
+                onClick = { onConfirm(selectedStaffId) },
+                enabled = selectedStaffId.isNotBlank(),
+            ) {
+                Text(text = "Assign", color = ActionBlue)
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) {
+                Text(text = "Cancel", color = TextMuted)
+            }
+        },
+    )
 }
 
 @Composable

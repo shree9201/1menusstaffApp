@@ -51,6 +51,14 @@ enum class StaffDepartment(val apiKey: String) {
     /** Manager and HR roles see the Staff tab in bottom navigation. */
     fun showsStaffTab(): Boolean = this == MANAGER || this == HR
 
+    fun showsServicesTab(): Boolean = this == MANAGER
+
+    fun canAssignRequests(): Boolean = this == MANAGER || this == HR
+
+    fun canAcceptRequests(): Boolean = this != HR
+
+    fun canStartService(): Boolean = this != HR
+
     companion object {
         fun fromApiKey(key: String?): StaffDepartment =
             when (key?.trim()?.uppercase()) {

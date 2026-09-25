@@ -5,6 +5,7 @@ import androidx.compose.material.icons.filled.Assignment
 import androidx.compose.material.icons.filled.Groups
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.filled.RoomService
 import androidx.compose.material3.Icon
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
@@ -26,6 +27,7 @@ enum class DashboardTab(
     Home("Home", Icons.Default.Home),
     Tasks("Tasks", Icons.Default.Assignment),
     Staff("Staff", Icons.Default.Groups),
+    Services("Services", Icons.Default.RoomService),
     Profile("Profile", Icons.Default.Person),
 }
 
@@ -33,6 +35,9 @@ fun dashboardTabsFor(session: UserSession?): List<DashboardTab> {
     val tabs = mutableListOf(DashboardTab.Home, DashboardTab.Tasks)
     if (session?.department?.showsStaffTab() == true) {
         tabs.add(DashboardTab.Staff)
+    }
+    if (session?.department?.showsServicesTab() == true) {
+        tabs.add(DashboardTab.Services)
     }
     tabs.add(DashboardTab.Profile)
     return tabs

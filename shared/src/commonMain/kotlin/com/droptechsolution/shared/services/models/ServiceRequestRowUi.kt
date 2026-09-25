@@ -1,5 +1,7 @@
 package com.droptechsolution.shared.services.models
 
+import com.droptechsolution.shared.ui.common.user.StaffDepartment
+
 enum class RequestSource {
     ROOM,
     OUTLET,
@@ -117,6 +119,15 @@ fun String.toTaskAction(): TaskActionType = when (uppercase()) {
     "NEW" -> TaskActionType.ACCEPT
     "ACCEPT", "ACCEPTED" -> TaskActionType.START
     else -> TaskActionType.NONE
+}
+
+fun ServiceRequestRowUi.forActor(department: StaffDepartment): ServiceRequestRowUi {
+    val nextAction = when {
+        !department.canAcceptRequests() && action == TaskActionType.ACCEPT -> TaskActionType.NONE
+        !department.canStartService() && action == TaskActionType.START -> TaskActionType.NONE
+        else -> action
+    }
+    return copy(action = nextAction)
 }
 
 fun String.toTaskSubtitle(createdDate: String): String = when (uppercase()) {

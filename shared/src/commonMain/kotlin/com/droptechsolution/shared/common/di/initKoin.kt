@@ -7,6 +7,7 @@ import com.droptechsolution.shared.ui.dashboard.di.dashboardModule
 import com.droptechsolution.shared.ui.home.di.homeModule
 import com.droptechsolution.shared.ui.login.di.loginModule
 import com.droptechsolution.shared.ui.profile.di.profileModule
+import com.droptechsolution.shared.ui.servicecatalog.di.serviceCatalogModule
 import com.droptechsolution.shared.ui.staff.di.staffModule
 import com.droptechsolution.shared.ui.tasks.di.tasksModule
 import org.koin.core.context.startKoin
@@ -25,6 +26,7 @@ fun initKoin(extraModules: List<Module> = emptyList()) {
             masterDataModule,
             tasksModule,
             staffModule,
+            serviceCatalogModule,
             profileModule,
             *extraModules.toTypedArray(),
         )

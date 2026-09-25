@@ -19,6 +19,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.toRoute
+import com.droptechsolution.shared.navigation.ActivityListRoute
 import com.droptechsolution.shared.navigation.UpdateProfileRoute
 import com.droptechsolution.shared.navigation.ChangePasswordRoute
 import com.droptechsolution.shared.navigation.ContactItSupportRoute
@@ -31,11 +32,15 @@ import com.droptechsolution.shared.navigation.ReportOperationalIssueRoute
 import com.droptechsolution.shared.navigation.StaffAddRoute
 import com.droptechsolution.shared.navigation.StaffDetailRoute
 import com.droptechsolution.shared.navigation.StaffEditRoute
+import com.droptechsolution.shared.navigation.ServiceDetailRoute
+import com.droptechsolution.shared.navigation.ServiceEditRoute
+import com.droptechsolution.shared.navigation.ServicesRoute
 import com.droptechsolution.shared.navigation.StaffRoute
 import com.droptechsolution.shared.navigation.TaskDetailRoute
 import com.droptechsolution.shared.navigation.TasksRoute
 import com.droptechsolution.shared.navigation.toRequestSource
 import com.droptechsolution.shared.services.views.RequestDetailsScreen
+import com.droptechsolution.shared.ui.activity.views.ActivityListScreen
 import com.droptechsolution.shared.ui.dashboard.presenter.DashboardViewModel
 import com.droptechsolution.shared.ui.home.views.HomeScreen
 import com.droptechsolution.shared.ui.profile.ProfileScreen
@@ -45,6 +50,9 @@ import com.droptechsolution.shared.ui.profile.updateprofile.views.UpdateProfileS
 import com.droptechsolution.shared.ui.profile.help.ContactItSupportScreen
 import com.droptechsolution.shared.ui.profile.help.HelpSupportScreen
 import com.droptechsolution.shared.ui.profile.help.ReportOperationalIssueScreen
+import com.droptechsolution.shared.ui.servicecatalog.views.ServiceCatalogDetailsScreen
+import com.droptechsolution.shared.ui.servicecatalog.views.ServiceCatalogFormScreen
+import com.droptechsolution.shared.ui.servicecatalog.views.ServiceCatalogScreen
 import com.droptechsolution.shared.ui.staff.views.StaffDetailsScreen
 import com.droptechsolution.shared.ui.staff.views.StaffFormScreen
 import com.droptechsolution.shared.ui.staff.views.StaffScreen
@@ -70,9 +78,11 @@ fun DashboardScreen(
     val visibleTabs = remember(userSession) { dashboardTabsFor(userSession) }
 
     LaunchedEffect(userSession, currentDestination) {
-        if (currentDestination?.hasRoute(StaffRoute::class) == true &&
+        val onStaffWithoutAccess = currentDestination?.hasRoute(StaffRoute::class) == true &&
             userSession?.department?.showsStaffTab() != true
-        ) {
+        val onServicesWithoutAccess = currentDestination?.hasRoute(ServicesRoute::class) == true &&
+            userSession?.department?.showsServicesTab() != true
+        if (onStaffWithoutAccess || onServicesWithoutAccess) {
             dashboardNavigator.goToFeed()
         }
     }
@@ -80,6 +90,7 @@ fun DashboardScreen(
     val selectedTab = when {
         currentDestination?.hasRoute(TasksRoute::class) == true -> DashboardTab.Tasks
         currentDestination?.hasRoute(StaffRoute::class) == true -> DashboardTab.Staff
+        currentDestination?.hasRoute(ServicesRoute::class) == true -> DashboardTab.Services
         currentDestination?.hasRoute(ProfileRoute::class) == true -> DashboardTab.Profile
         else -> DashboardTab.Home
     }
@@ -88,6 +99,7 @@ fun DashboardScreen(
         currentDestination?.hasRoute(HomeRoute::class) == true -> true
         currentDestination?.hasRoute(TasksRoute::class) == true -> true
         currentDestination?.hasRoute(StaffRoute::class) == true -> true
+        currentDestination?.hasRoute(ServicesRoute::class) == true -> true
         currentDestination?.hasRoute(ProfileRoute::class) == true -> true
         else -> false
     }
@@ -107,6 +119,7 @@ fun DashboardScreen(
                                 DashboardTab.Home -> dashboardNavigator.goToFeed()
                                 DashboardTab.Tasks -> dashboardNavigator.goToTasks()
                                 DashboardTab.Staff -> dashboardNavigator.goToStaff()
+                                DashboardTab.Services -> dashboardNavigator.goToServices()
                                 DashboardTab.Profile -> dashboardNavigator.goToProfile()
                             }
                         },
@@ -127,6 +140,7 @@ fun DashboardScreen(
                         onViewAllTasks = { dashboardNavigator.goToTasks() },
                         onOverviewClick = dashboardNavigator::goToTasksFromOverview,
                         onTaskClick = dashboardNavigator::goToTaskDetail,
+                        onNotificationsClick = dashboardNavigator::goToActivityList,
                     )
                 }
                 composable<TasksRoute> { backStackEntry ->
@@ -144,6 +158,12 @@ fun DashboardScreen(
                         modifier = Modifier.fillMaxSize(),
                         onStaffClick = dashboardNavigator::goToStaffDetail,
                         onAddStaff = dashboardNavigator::goToAddStaff,
+                    )
+                }
+                composable<ServicesRoute> {
+                    ServiceCatalogScreen(
+                        modifier = Modifier.fillMaxSize(),
+                        onServiceClick = dashboardNavigator::goToServiceDetail,
                     )
                 }
                 composable<ProfileRoute> {
@@ -213,6 +233,29 @@ fun DashboardScreen(
                     val route = backStackEntry.toRoute<StaffEditRoute>()
                     StaffFormScreen(
                         staffId = route.staffId,
+                        onBack = dashboardNavigator::navigateUp,
+                        modifier = Modifier.fillMaxSize(),
+                    )
+                }
+                composable<ServiceDetailRoute> { backStackEntry ->
+                    val route = backStackEntry.toRoute<ServiceDetailRoute>()
+                    ServiceCatalogDetailsScreen(
+                        serviceId = route.serviceId,
+                        onBack = dashboardNavigator::navigateUp,
+                        onEdit = dashboardNavigator::goToEditService,
+                        modifier = Modifier.fillMaxSize(),
+                    )
+                }
+                composable<ServiceEditRoute> { backStackEntry ->
+                    val route = backStackEntry.toRoute<ServiceEditRoute>()
+                    ServiceCatalogFormScreen(
+                        serviceId = route.serviceId,
+                        onBack = dashboardNavigator::navigateUp,
+                        modifier = Modifier.fillMaxSize(),
+                    )
+                }
+                composable<ActivityListRoute> {
+                    ActivityListScreen(
                         onBack = dashboardNavigator::navigateUp,
                         modifier = Modifier.fillMaxSize(),
                     )

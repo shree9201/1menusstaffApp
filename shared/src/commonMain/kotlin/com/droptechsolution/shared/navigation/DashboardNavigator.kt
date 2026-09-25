@@ -64,6 +64,16 @@ class DashboardNavigator(
 
     fun goToStaff() = navigateToTab(StaffRoute)
 
+    fun goToServices() = navigateToTab(ServicesRoute)
+
+    fun goToServiceDetail(serviceId: String) {
+        navController.navigate(ServiceDetailRoute(serviceId = serviceId))
+    }
+
+    fun goToEditService(serviceId: String) {
+        navController.navigate(ServiceEditRoute(serviceId = serviceId))
+    }
+
     fun goToStaffDetail(staffId: String) {
         navController.navigate(StaffDetailRoute(staffId = staffId))
     }
@@ -74,6 +84,10 @@ class DashboardNavigator(
 
     fun goToEditStaff(staffId: String) {
         navController.navigate(StaffEditRoute(staffId = staffId))
+    }
+
+    fun goToActivityList() {
+        navController.navigate(ActivityListRoute)
     }
 
     fun goToTaskDetail(task: ServiceRequestRowUi) {

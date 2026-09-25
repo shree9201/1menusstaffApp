@@ -2,6 +2,8 @@ package com.droptechsolution.shared.services.interactor
 
 import com.droptechsolution.shared.network.NetworkError
 import com.droptechsolution.shared.network.NetworkResult
+import com.droptechsolution.shared.services.models.ActivityListItemUi
+import com.droptechsolution.shared.services.models.ActivityListRequest
 import com.droptechsolution.shared.services.models.OutletService
 import com.droptechsolution.shared.outletinfo.model.api.staff.StaffDetails
 import com.droptechsolution.shared.services.models.RequestAction
@@ -157,13 +159,15 @@ class ServicesInteractor(
         action: RequestAction,
         user: StaffDetails,
         staffName: String = user.name,
+        assignedTo: String = user.id,
+        assigneeName: String = staffName,
     ): NetworkResult<UpdateRequestResult> {
         val body = UpdateRequestBody(
             outletId = outletId,
             requestId = requestId,
             status = action.apiStatus(),
-            assignedTo = user.id,
-            comment = action.defaultComment(staffName),
+            assignedTo = assignedTo,
+            comment = action.defaultComment(staffName, assigneeName),
             user = user,
         )
 
@@ -189,6 +193,35 @@ class ServicesInteractor(
                     )
                 } else {
                     NetworkResult.Success(UpdateRequestResult(message = message))
+                }
+            }
+            is NetworkResult.Error -> result
+        }
+    }
+
+    suspend fun loadActivityList(
+        outletId: String,
+        staffId: String,
+    ): NetworkResult<List<ActivityListItemUi>> {
+        val outletIdInt = outletId.toIntOrNull()
+            ?: return NetworkResult.Error(NetworkError.Unknown("Invalid outlet ID"))
+        val staffIdInt = staffId.toIntOrNull()
+            ?: return NetworkResult.Error(NetworkError.Unknown("Invalid staff ID"))
+
+        return when (
+            val result = servicesAPI.getActivityList(
+                ActivityListRequest(outletId = outletIdInt, staffId = staffIdInt),
+            )
+        ) {
+            is NetworkResult.Success -> {
+                if (result.data.isSuccessful()) {
+                    NetworkResult.Success(result.data.activityList.map { it.toUi() })
+                } else {
+                    NetworkResult.Error(
+                        NetworkError.Unknown(
+                            result.data.value?.takeIf { it.isNotBlank() } ?: "Unable to load notifications",
+                        ),
+                    )
                 }
             }
             is NetworkResult.Error -> result

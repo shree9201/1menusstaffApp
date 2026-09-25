@@ -7,10 +7,12 @@ import com.droptechsolution.shared.network.NetworkResult
 import com.droptechsolution.shared.services.TaskListRefreshNotifier
 import com.droptechsolution.shared.services.interactor.ServicesInteractor
 import com.droptechsolution.shared.services.models.DepartmentOverviewStatUi
-import com.droptechsolution.shared.services.models.StaffRequestScope
 import com.droptechsolution.shared.services.models.ServiceRequestRowUi
+import com.droptechsolution.shared.services.models.StaffRequestScope
+import com.droptechsolution.shared.services.models.forActor
 import com.droptechsolution.shared.ui.common.user.UserStorage
 import com.droptechsolution.shared.ui.common.user.toInitials
+import com.droptechsolution.shared.ui.common.user.toStaffDepartment
 import com.droptechsolution.shared.ui.common.user.toStaffType
 import com.droptechsolution.shared.ui.home.models.DashboardHeaderUi
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -116,8 +118,10 @@ class HomeViewModel(
             )
         ) {
             is NetworkResult.Success -> {
-                _activeTaskCount.value = result.data.rows.size
-                _activeTasks.value = result.data.rows
+                val department = staffScope.loginUserType.orEmpty().toStaffDepartment()
+                val rows = result.data.rows.map { it.forActor(department) }
+                _activeTaskCount.value = rows.size
+                _activeTasks.value = rows
             }
             is NetworkResult.Error -> {
                 _activeTaskCount.value = 0

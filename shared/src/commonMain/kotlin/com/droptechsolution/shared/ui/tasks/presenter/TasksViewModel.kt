@@ -8,8 +8,10 @@ import com.droptechsolution.shared.services.interactor.ServicesInteractor
 import com.droptechsolution.shared.services.models.DepartmentOverviewCategory
 import com.droptechsolution.shared.services.models.filterStatuses
 import com.droptechsolution.shared.services.models.ServiceRequestRowUi
+import com.droptechsolution.shared.services.models.forActor
 import com.droptechsolution.shared.ui.common.user.UserSession
 import com.droptechsolution.shared.ui.common.user.UserStorage
+import com.droptechsolution.shared.ui.common.user.toStaffDepartment
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -93,7 +95,8 @@ class TasksViewModel(
                 )
             ) {
                 is NetworkResult.Success -> {
-                    _tasks.value = result.data.rows
+                    val department = staffScope.loginUserType.orEmpty().toStaffDepartment()
+                    _tasks.value = result.data.rows.map { it.forActor(department) }
                     lastLoadedKey = loadKey
                 }
                 is NetworkResult.Error -> {

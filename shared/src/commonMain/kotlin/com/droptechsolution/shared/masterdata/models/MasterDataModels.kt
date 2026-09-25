@@ -1,9 +1,12 @@
 package com.droptechsolution.shared.masterdata.models
 
-import com.droptechsolution.shared.outletinfo.model.api.staff.StaffDetails
+import com.droptechsolution.shared.network.ApiStatusSerializer
+import com.droptechsolution.shared.network.isApiSuccess
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.builtins.ListSerializer
+import kotlinx.serialization.builtins.MapSerializer
+import kotlinx.serialization.builtins.serializer
 import kotlinx.serialization.descriptors.SerialDescriptor
 import kotlinx.serialization.encoding.Decoder
 import kotlinx.serialization.encoding.Encoder
@@ -29,35 +32,30 @@ data class MasterDataKeyValue(
 
 @Serializable
 data class MasterDataResponse(
-    val status: String,
-    val value: String,
+    @Serializable(with = ApiStatusSerializer::class)
+    val status: String = "false",
+    val value: String = "",
     @Serializable(with = FlexibleKeyValueListSerializer::class)
     val staffTypes: List<MasterDataKeyValue> = emptyList(),
     @Serializable(with = FlexibleKeyValueListSerializer::class)
     val departments: List<MasterDataKeyValue> = emptyList(),
+    @Serializable(with = FlexibleStringMapSerializer::class)
     val statusList: Map<String, String> = emptyMap(),
-    val staffDepartments: List<String> = emptyList(),
-    val user: StaffDetails? = null,
 )
 
 data class MasterData(
     val staffTypes: List<MasterDataKeyValue>,
     val departments: List<MasterDataKeyValue>,
     val statusList: Map<String, String>,
-    val user: StaffDetails?,
 )
 
-fun MasterDataResponse.isSuccessful(): Boolean =
-    status.equals("true", ignoreCase = true) || status == "1"
+fun MasterDataResponse.isSuccessful(): Boolean = status.isApiSuccess()
 
 fun MasterDataResponse.toDomain(): MasterData =
     MasterData(
         staffTypes = staffTypes,
-        departments = departments.ifEmpty {
-            staffDepartments.map { MasterDataKeyValue(key = it, value = it) }
-        },
+        departments = departments,
         statusList = statusList,
-        user = user,
     )
 
 object FlexibleKeyValueListSerializer : KSerializer<List<MasterDataKeyValue>> {
@@ -90,12 +88,6 @@ object FlexibleKeyValueListSerializer : KSerializer<List<MasterDataKeyValue>> {
             ?: return listSerializer.deserialize(decoder)
 
         return when (val element = jsonDecoder.decodeJsonElement()) {
-            is JsonObject -> element.map { (key, value) ->
-                MasterDataKeyValue(
-                    key = key,
-                    value = (value as? JsonPrimitive)?.contentOrNull ?: key,
-                )
-            }
             is JsonArray -> element.mapNotNull { item ->
                 when (item) {
                     is JsonObject -> {
@@ -110,7 +102,41 @@ object FlexibleKeyValueListSerializer : KSerializer<List<MasterDataKeyValue>> {
                     else -> null
                 }
             }
+            is JsonObject -> element.map { (key, value) ->
+                MasterDataKeyValue(
+                    key = key,
+                    value = (value as? JsonPrimitive)?.contentOrNull ?: key,
+                )
+            }
             else -> emptyList()
+        }
+    }
+}
+
+object FlexibleStringMapSerializer : KSerializer<Map<String, String>> {
+    private val mapSerializer = MapSerializer(String.serializer(), String.serializer())
+
+    override val descriptor: SerialDescriptor = mapSerializer.descriptor
+
+    override fun serialize(encoder: Encoder, value: Map<String, String>) {
+        mapSerializer.serialize(encoder, value)
+    }
+
+    override fun deserialize(decoder: Decoder): Map<String, String> {
+        val jsonDecoder = decoder as? JsonDecoder
+            ?: return mapSerializer.deserialize(decoder)
+
+        return when (val element = jsonDecoder.decodeJsonElement()) {
+            is JsonObject -> element.mapValues { (_, value) ->
+                (value as? JsonPrimitive)?.contentOrNull.orEmpty()
+            }
+            is JsonArray -> element.mapNotNull { item ->
+                val obj = item as? JsonObject ?: return@mapNotNull null
+                val key = obj["key"]?.jsonPrimitive?.contentOrNull ?: return@mapNotNull null
+                val value = obj["value"]?.jsonPrimitive?.contentOrNull ?: key
+                key to value
+            }.toMap()
+            else -> emptyMap()
         }
     }
 }

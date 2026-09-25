@@ -44,6 +44,19 @@ data class TaskDetailRoute(
 object StaffRoute
 
 @Serializable
+object ServicesRoute
+
+@Serializable
+data class ServiceDetailRoute(
+    val serviceId: String,
+)
+
+@Serializable
+data class ServiceEditRoute(
+    val serviceId: String,
+)
+
+@Serializable
 data class StaffDetailRoute(
     val staffId: String,
 )
@@ -55,6 +68,9 @@ object StaffAddRoute
 data class StaffEditRoute(
     val staffId: String,
 )
+
+@Serializable
+object ActivityListRoute
 
 @Serializable
 object ProfileRoute

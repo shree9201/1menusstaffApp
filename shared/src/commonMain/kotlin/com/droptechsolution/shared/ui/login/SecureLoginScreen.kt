@@ -55,7 +55,7 @@ import org.koin.compose.viewmodel.koinViewModel
 
 enum class LoginRole(val label: String, val value: String) {
     Staff("Staff", "STAFF"),
-    Manager("Manager", "HOD"),
+    Manager("Manager", "MANAGER"),
     Hr("HR", "HR")
 }
 

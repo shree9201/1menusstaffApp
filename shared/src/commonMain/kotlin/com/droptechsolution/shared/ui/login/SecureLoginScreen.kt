@@ -42,7 +42,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.droptechsolution.shared.common.ui.GradientButton
-import com.droptechsolution.shared.common.ui.MenusDropdown
+import com.droptechsolution.shared.common.ui.MenusKeyValueDropdown
 import com.droptechsolution.shared.ui.common.ToastMessageEffect
 import com.droptechsolution.shared.ui.theme.BG_LIGHT
 import com.droptechsolution.shared.ui.theme.BG_WHITE
@@ -56,8 +56,20 @@ import org.koin.compose.viewmodel.koinViewModel
 enum class LoginRole(val label: String, val value: String) {
     Staff("Staff", "STAFF"),
     Manager("Manager", "MANAGER"),
-    Hr("HR", "HR")
+    Hr("HR", "HR"),
+    ;
+
+    fun toOption(): LoginRoleOption = LoginRoleOption(label = label, value = value)
+
+    companion object {
+        fun backupOptions(): List<LoginRoleOption> = entries.map { it.toOption() }
+    }
 }
+
+data class LoginRoleOption(
+    val label: String,
+    val value: String,
+)
 
 @Composable
 fun SecureLoginScreen(
@@ -67,7 +79,7 @@ fun SecureLoginScreen(
     onLoginSuccess: () -> Unit = {},
     onSubmit: (
         outletCode: String,
-        role: LoginRole,
+        role: LoginRoleOption,
         username: String,
         password: String,
         autoLogin: Boolean
@@ -75,6 +87,11 @@ fun SecureLoginScreen(
 ) {
     val isLoading by viewModel.isLoading.collectAsState()
     val loginSuccess by viewModel.loginState.collectAsState()
+    val loginRoles by viewModel.loginRoles.collectAsState()
+
+    LaunchedEffect(Unit) {
+        viewModel.loadLoginRoles()
+    }
 
     LaunchedEffect(loginSuccess) {
         if (loginSuccess) {
@@ -86,6 +103,7 @@ fun SecureLoginScreen(
         SecureLoginContent(
             modifier = modifier,
             isLoading = isLoading,
+            loginRoles = loginRoles,
             onSubmit = { outletCode, selectedRole, username, password, autoLogin ->
                 viewModel.login(outletCode, username, password, selectedRole.value)
                 onSubmit(outletCode, selectedRole, username, password, autoLogin)
@@ -98,9 +116,10 @@ fun SecureLoginScreen(
 private fun SecureLoginContent(
     modifier: Modifier = Modifier,
     isLoading: Boolean,
+    loginRoles: List<LoginRoleOption>,
     onSubmit: (
         outletCode: String,
-        role: LoginRole,
+        role: LoginRoleOption,
         username: String,
         password: String,
         autoLogin: Boolean
@@ -111,10 +130,17 @@ private fun SecureLoginContent(
     var passwordError by remember { mutableStateOf<String?>(null) }
 
     var outletCode by remember { mutableStateOf("") }
-    var selectedRole by remember { mutableStateOf(LoginRole.Staff) }
+    var selectedRole by remember { mutableStateOf(loginRoles.firstOrNull() ?: LoginRole.Staff.toOption()) }
     var username by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     var autoLogin by remember { mutableStateOf(false) }
+
+    LaunchedEffect(loginRoles) {
+        val stillAvailable = loginRoles.any { it.value.equals(selectedRole.value, ignoreCase = true) }
+        if (!stillAvailable) {
+            selectedRole = loginRoles.firstOrNull() ?: LoginRole.Staff.toOption()
+        }
+    }
 
     MenusTheme {
         Surface(
@@ -171,8 +197,9 @@ private fun SecureLoginContent(
 
                     FormLabel("I am")
                     RoleSelector(
+                        roles = loginRoles,
                         selectedRole = selectedRole,
-                        onRoleSelected = { selectedRole = it }
+                        onRoleSelected = { selectedRole = it },
                     )
 
                     Spacer(modifier = Modifier.height(14.dp))
@@ -346,14 +373,17 @@ private fun FormLabel(text: String) {
 
 @Composable
 private fun RoleSelector(
-    selectedRole: LoginRole,
-    onRoleSelected: (LoginRole) -> Unit
+    roles: List<LoginRoleOption>,
+    selectedRole: LoginRoleOption,
+    onRoleSelected: (LoginRoleOption) -> Unit,
 ) {
-    MenusDropdown(
-        items = LoginRole.entries.map { it.label },
-        label = selectedRole.label,
-        onItemSelected = { label ->
-            LoginRole.entries.firstOrNull { it.label == label }?.let(onRoleSelected)
+    val options = roles.ifEmpty { LoginRole.backupOptions() }
+    MenusKeyValueDropdown(
+        options = options.map { it.value to it.label },
+        selectedKey = selectedRole.value,
+        label = "Select role",
+        onKeySelected = { key ->
+            options.firstOrNull { it.value.equals(key, ignoreCase = true) }?.let(onRoleSelected)
         },
     )
 }

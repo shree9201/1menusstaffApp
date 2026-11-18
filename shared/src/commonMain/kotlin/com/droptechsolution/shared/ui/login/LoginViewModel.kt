@@ -3,6 +3,7 @@ package com.droptechsolution.shared.ui.login
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.droptechsolution.shared.masterdata.interactor.MasterDataInteractor
+import com.droptechsolution.shared.masterdata.models.MasterData
 import com.droptechsolution.shared.network.NetworkResult
 import com.droptechsolution.shared.outletinfo.model.api.OutletApi
 import com.droptechsolution.shared.outletinfo.model.api.StaffLoginResult
@@ -32,8 +33,43 @@ class LoginViewModel(
     private val _isLoading = MutableStateFlow(false)
     val isLoading = _isLoading.asStateFlow()
 
+    private val _loginRoles = MutableStateFlow(LoginRole.backupOptions())
+    val loginRoles = _loginRoles.asStateFlow()
+
     private val _isLoggedInState = MutableStateFlow(false)
     val _isLoggedIn = _isLoggedInState.asStateFlow()
+
+    fun loadLoginRoles() {
+        applyDepartments(masterDataInteractor.masterData.value)
+        viewModelScope.launch {
+            when (val result = masterDataInteractor.loadMasterData()) {
+                is NetworkResult.Success -> applyDepartments(result.data)
+                is NetworkResult.Error -> {
+                    if (_loginRoles.value.isEmpty()) {
+                        _loginRoles.value = LoginRole.backupOptions()
+                    }
+                }
+            }
+        }
+    }
+
+    private fun applyDepartments(masterData: MasterData?) {
+        val fromApi = masterData?.departments
+            .orEmpty()
+            .map { department ->
+                LoginRoleOption(
+                    label = department.value.ifBlank { department.key },
+                    value = department.key,
+                )
+            }
+            .filter { it.value.isNotBlank() }
+            .distinctBy { it.value.uppercase() }
+        if (fromApi.isNotEmpty()) {
+            _loginRoles.value = fromApi
+        } else if (_loginRoles.value.isEmpty()) {
+            _loginRoles.value = LoginRole.backupOptions()
+        }
+    }
 
     fun login(outletCode: String, username: String, password: String, userType: String) {
         viewModelScope.launch {

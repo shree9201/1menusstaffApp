@@ -24,9 +24,9 @@ object URN {
     val UPDATE_REQUEST = "updateRequest"
     val SERVICE_STATUS_COUNT = "serviceStatusCount"
     val GET_ACTIVITY_LIST = "getActivityList"
-    val SERVICE_VIEW = "Service/view/id"
-    val SERVICE_CATEGORY = "Service/category/id"
-    val SERVICE_UPDATE = "Service/update"
-    val SERVICE_DELETE = "Service/delete"
+    val SERVICE_VIEW = "services/view"
+    val SERVICE_CATEGORY = "services/category"
+    val SERVICE_UPDATE = "services/update"
+    val SERVICE_DELETE = "services/delete"
     val MASTER_DATA = "masterData"
 }

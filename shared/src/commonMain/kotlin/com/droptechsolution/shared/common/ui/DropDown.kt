@@ -7,12 +7,15 @@ import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.ExposedDropdownMenuDefaults
+import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.MenuDefaults
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -150,18 +153,28 @@ fun MenusKeyValueDropdown(
             ),
         )
 
-        ExposedDropdownMenu(
-            expanded = expanded,
-            onDismissRequest = { expanded = false },
-        ) {
-            options.forEach { (key, value) ->
-                DropdownMenuItem(
-                    text = { Text(value) },
-                    onClick = {
-                        onKeySelected(key)
-                        expanded = false
-                    },
-                )
+        CompositionLocalProvider(LocalContentColor provides BLACK) {
+            ExposedDropdownMenu(
+                expanded = expanded,
+                onDismissRequest = { expanded = false },
+            ) {
+                options.forEach { (key, value) ->
+                    DropdownMenuItem(
+                        text = {
+                            Text(
+                                text = value,
+                                color = BLACK,
+                            )
+                        },
+                        colors = MenuDefaults.itemColors(
+                            textColor = BLACK,
+                        ),
+                        onClick = {
+                            onKeySelected(key)
+                            expanded = false
+                        },
+                    )
+                }
             }
         }
     }

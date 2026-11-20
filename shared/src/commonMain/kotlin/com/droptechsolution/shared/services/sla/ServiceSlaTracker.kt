@@ -35,18 +35,28 @@ class ServiceSlaTracker(
     suspend fun ensureSessionForInProgressRequest(
         requestId: String,
         reminderMinutes: Int,
+        createdAt: String?,
         workStartedAt: String?,
         statusDisplay: RequestStatusDisplay,
     ) {
         if (reminderMinutes <= 0) return
-        val existing = repository.getSession()
-        if (existing?.requestId == requestId && existing.isRunning) return
-
-        if (statusDisplay == RequestStatusDisplay.IN_PROGRESS) {
-            val startedAt = ServiceSlaCalculator.parseStartTimeEpochMs(workStartedAt.orEmpty())
-                ?: ServiceSlaCalculator.nowEpochMs()
-            start(requestId, reminderMinutes, startedAt)
+        if (statusDisplay.isTerminal()) {
+            stop(requestId)
+            return
         }
+
+        val startedAt = ServiceSlaCalculator.parseStartTimeEpochMs(createdAt.orEmpty())
+            ?: ServiceSlaCalculator.parseStartTimeEpochMs(workStartedAt.orEmpty())
+            ?: ServiceSlaCalculator.nowEpochMs()
+        val existing = repository.getSession()
+        if (
+            existing?.requestId == requestId &&
+            existing.isRunning &&
+            existing.startedAtEpochMs == startedAt
+        ) {
+            return
+        }
+        start(requestId, reminderMinutes, startedAt)
     }
 
     suspend fun getProgress(
@@ -81,29 +91,43 @@ class ServiceSlaTracker(
         reminderMinutes: Int,
         title: String,
         priorityLabel: String,
+        createdAt: String?,
+        updatedAt: String?,
         workStartedAt: String?,
+        workEndedAt: String?,
         statusDisplay: RequestStatusDisplay,
     ): ServiceSlaProgressUi? {
         if (reminderMinutes <= 0) return null
 
         val session = repository.getSession()
         val activeSession = session?.takeIf { it.requestId == requestId }
-        val isRunning = activeSession?.isRunning == true
-        val startedAt = when {
-            isRunning -> activeSession.startedAtEpochMs
-            statusDisplay == RequestStatusDisplay.IN_PROGRESS -> {
-                ServiceSlaCalculator.parseStartTimeEpochMs(workStartedAt.orEmpty())
-                    ?: ServiceSlaCalculator.nowEpochMs()
-            }
-            else -> ServiceSlaCalculator.nowEpochMs()
+        val startedAt = ServiceSlaCalculator.parseStartTimeEpochMs(createdAt.orEmpty())
+            ?: ServiceSlaCalculator.parseStartTimeEpochMs(workStartedAt.orEmpty())
+            ?: activeSession?.startedAtEpochMs
+            ?: ServiceSlaCalculator.nowEpochMs()
+        val isCompleted = statusDisplay.isCompleted()
+        val endedAt = if (isCompleted) {
+            ServiceSlaCalculator.parseStartTimeEpochMs(updatedAt.orEmpty())
+                ?: ServiceSlaCalculator.parseStartTimeEpochMs(workEndedAt.orEmpty())
+                ?: ServiceSlaCalculator.nowEpochMs()
+        } else {
+            ServiceSlaCalculator.nowEpochMs()
         }
+        val isRunning = !statusDisplay.isTerminal()
 
         return ServiceSlaCalculator.calculate(
             title = title,
             reminderMinutes = reminderMinutes,
             priorityLabel = priorityLabel,
             startedAtEpochMs = startedAt,
+            nowEpochMs = endedAt.coerceAtLeast(startedAt),
             isRunning = isRunning,
         )
     }
 }
+
+private fun RequestStatusDisplay.isCompleted(): Boolean =
+    this == RequestStatusDisplay.COMPLETED
+
+private fun RequestStatusDisplay.isTerminal(): Boolean =
+    isCompleted() || this == RequestStatusDisplay.REJECTED

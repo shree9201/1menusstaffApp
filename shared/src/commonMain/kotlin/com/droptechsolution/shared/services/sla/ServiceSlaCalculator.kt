@@ -18,11 +18,7 @@ object ServiceSlaCalculator {
         isRunning: Boolean,
     ): ServiceSlaProgressUi {
         val totalMs = reminderMinutes * 60_000L
-        val elapsedMs = if (isRunning) {
-            (nowEpochMs - startedAtEpochMs).coerceAtLeast(0)
-        } else {
-            0L
-        }
+        val elapsedMs = (nowEpochMs - startedAtEpochMs).coerceAtLeast(0)
         val progressFraction = if (totalMs > 0) {
             (elapsedMs.toFloat() / totalMs.toFloat()).coerceIn(0f, 1f)
         } else {

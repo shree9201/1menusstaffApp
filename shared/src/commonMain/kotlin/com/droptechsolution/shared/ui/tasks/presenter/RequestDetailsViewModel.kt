@@ -12,6 +12,8 @@ import com.droptechsolution.shared.services.models.toAvailableActions
 import com.droptechsolution.shared.services.models.toStatusDisplay
 import com.droptechsolution.shared.services.models.RequestDetailsUi
 import com.droptechsolution.shared.services.models.RequestSource
+import com.droptechsolution.shared.services.models.RequestStatusDisplay
+import com.droptechsolution.shared.services.sla.ServiceSlaCalculator
 import com.droptechsolution.shared.services.sla.ServiceSlaProgressUi
 import com.droptechsolution.shared.services.sla.ServiceSlaTracker
 import com.droptechsolution.shared.ui.common.GENERIC_ERROR_MESSAGE
@@ -166,16 +168,16 @@ class RequestDetailsViewModel(
                     if (details != null) {
                         applyDetails(details)
                         when (action) {
-                            RequestAction.START -> startSlaTracking(details)
-                            RequestAction.COMPLETE,
+                            RequestAction.START,
                             RequestAction.PAUSE,
-                            RequestAction.REJECT,
                             RequestAction.HOLD_ESCALATE,
-                            -> stopSlaTracking(details.id)
                             RequestAction.ACCEPT,
                             RequestAction.ASSIGN,
                             RequestAction.PASS,
-                            -> Unit
+                            -> startSlaTracking(details)
+                            RequestAction.COMPLETE,
+                            RequestAction.REJECT,
+                            -> stopSlaTracking(details.id)
                         }
                     } else {
                         applyLocalActionResult(action)
@@ -191,12 +193,19 @@ class RequestDetailsViewModel(
     private suspend fun applyLocalActionResult(action: RequestAction) {
         val current = _details.value ?: return
         val updatedStatus = action.apiStatus()
-        stopSlaTracking(current.id)
-        _details.value = current.copy(
+        val updated = current.copy(
             status = updatedStatus,
             statusDisplay = updatedStatus.toStatusDisplay(),
             availableActions = updatedStatus.toAvailableActions(actorDepartment),
         )
+        _details.value = updated
+        if (updated.statusDisplay == RequestStatusDisplay.COMPLETED ||
+            updated.statusDisplay == RequestStatusDisplay.REJECTED
+        ) {
+            stopSlaTracking(updated.id)
+        } else {
+            startSlaTracking(updated)
+        }
     }
 
     private suspend fun applyDetails(details: RequestDetailsUi) {
@@ -212,6 +221,7 @@ class RequestDetailsViewModel(
         slaTracker.ensureSessionForInProgressRequest(
             requestId = details.id,
             reminderMinutes = details.reminderTimeMinutes,
+            createdAt = details.createdDate,
             workStartedAt = details.workStartedAt,
             statusDisplay = details.statusDisplay,
         )
@@ -221,7 +231,9 @@ class RequestDetailsViewModel(
 
     private suspend fun startSlaTracking(details: RequestDetailsUi) {
         if (details.reminderTimeMinutes <= 0) return
-        slaTracker.start(details.id, details.reminderTimeMinutes)
+        val startedAt = ServiceSlaCalculator.parseStartTimeEpochMs(details.createdDate)
+            ?: ServiceSlaCalculator.nowEpochMs()
+        slaTracker.start(details.id, details.reminderTimeMinutes, startedAt)
         refreshSlaProgress(details)
         startSlaTickerIfNeeded(details)
     }
@@ -264,7 +276,10 @@ class RequestDetailsViewModel(
             reminderMinutes = details.reminderTimeMinutes,
             title = details.slaCardTitle,
             priorityLabel = details.priorityShort,
+            createdAt = details.createdDate,
+            updatedAt = details.updatedDate,
             workStartedAt = details.workStartedAt,
+            workEndedAt = details.workEndedAt,
             statusDisplay = details.statusDisplay,
         )
     }

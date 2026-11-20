@@ -138,7 +138,11 @@ fun String.toTaskSubtitle(createdDate: String): String = when (uppercase()) {
 
 fun String.toDisplayTime(): String {
     val (hour, minute) = parseTimeOfDay() ?: return legacyDisplayTime()
-    return "${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}"
+    var isAM_PM="AM"
+    if (hour>12)
+        isAM_PM = "PM"
+
+    return "${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')} $isAM_PM"
 }
 
 fun String.toMinutesOfDay(): Int? {

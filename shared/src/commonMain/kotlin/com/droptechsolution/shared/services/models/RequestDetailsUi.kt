@@ -259,7 +259,7 @@ private fun RequestActivity.toTimelineStep(
     isCurrent: Boolean,
     durationFromPrevious: String?,
 ): TimelineStepUi {
-    val (headline, description) = status.toTimelineCopy()
+    val (headline, description) = status.toTimelineCopy(comment)
     return TimelineStepUi(
         headline = headline,
         description = description,
@@ -281,17 +281,17 @@ private fun String.toTimelineKey(): String = when (uppercase()) {
     else -> uppercase()
 }
 
-private fun String.toTimelineCopy(): Pair<String, String> = when (uppercase()) {
-    "NEW", "OPEN" -> "Open" to "Request received"
-    "ASSIGN", "ASSIGNED" -> "Assigned" to "Request assigned to staff"
-    "ACCEPT", "ACCEPTED" -> "Accepted" to "Staff accepted request"
+private fun String.toTimelineCopy(comment:String): Pair<String, String> = when (uppercase()) {
+    "NEW", "OPEN" -> "Open" to comment
+    "ASSIGN", "ASSIGNED" -> "Assigned" to comment
+    "ACCEPT", "ACCEPTED" -> "Accepted" to  comment
     "START", "STARTED" -> "Started" to "Service timer began"
     "END" -> "Ended" to "Service completed"
     "CLOSE", "CLOSED", "DONE" -> "Done" to "Request closed"
     "HOLD", "PAUSE", "PAUSED" -> "Paused" to "Request on hold"
     "ESCALATED" -> "Escalated" to "Request escalated"
     "REJECT", "REJECTED" -> "Rejected" to "Request rejected"
-    else -> this to "Status updated"
+    else -> this to this
 }
 
 private fun computeDurationLabel(previous: String, current: String): String? {

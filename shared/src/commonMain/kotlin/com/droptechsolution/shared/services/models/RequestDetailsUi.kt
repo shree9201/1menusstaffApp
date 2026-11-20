@@ -308,5 +308,6 @@ private fun computeDurationLabel(previous: String, current: String): String? {
     val currentMinutes = current.toMinutesOfDay() ?: return null
     val diff = (currentMinutes - prevMinutes).coerceAtLeast(0)
     if (diff == 0) return null
-    return "+${diff}m from previous"
+    val unit = if (diff == 1) "Min" else "Mins"
+    return "+$diff $unit"
 }

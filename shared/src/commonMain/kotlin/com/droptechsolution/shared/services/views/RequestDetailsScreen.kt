@@ -585,34 +585,28 @@ private fun InProgressActionsSection(
     enabled: Boolean,
     onAction: (RequestAction) -> Unit,
 ) {
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.spacedBy(10.dp),
-    ) {
-        if (RequestAction.PAUSE in actions) {
-            ActionButton(
-                label = "Pause Service",
-                icon = Icons.Default.Pause,
-                background = ActionPauseBg,
-                contentColor = ActionPauseBorder,
-                borderColor = ActionPauseBorder,
-                enabled = enabled,
-                onClick = { onAction(RequestAction.PAUSE) },
-                modifier = Modifier.weight(1f),
-            )
-        }
-        if (RequestAction.PASS in actions) {
-            ActionButton(
-                label = "Pass",
-                icon = Icons.AutoMirrored.Filled.Reply,
-                background = ActionBlueBg,
-                contentColor = ActionBlue,
-                borderColor = ActionBlue,
-                enabled = enabled,
-                onClick = { onAction(RequestAction.PASS) },
-                modifier = Modifier.weight(1f),
-            )
-        }
+    if (RequestAction.PAUSE in actions) {
+        ActionButton(
+            label = "Pause Service",
+            icon = Icons.Default.Pause,
+            background = ActionPauseBg,
+            contentColor = ActionPauseBorder,
+            borderColor = ActionPauseBorder,
+            enabled = enabled,
+            onClick = { onAction(RequestAction.PAUSE) },
+        )
+        Spacer(modifier = Modifier.height(10.dp))
+    }
+    if (RequestAction.PASS in actions) {
+        ActionButton(
+            label = "Pass",
+            icon = Icons.AutoMirrored.Filled.Reply,
+            background = ActionBlueBg,
+            contentColor = ActionBlue,
+            borderColor = ActionBlue,
+            enabled = enabled,
+            onClick = { onAction(RequestAction.PASS) },
+        )
     }
 
     if (RequestAction.COMPLETE in actions) {
@@ -641,20 +635,12 @@ private fun DefaultActionsSection(
     }
 
     val secondary = actions.filter { it == RequestAction.PASS || it == RequestAction.PAUSE }
-    if (secondary.isNotEmpty()) {
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(10.dp),
-        ) {
-            secondary.forEach { action ->
-                SecondaryActionButton(
-                    action = action,
-                    enabled = enabled,
-                    onClick = { onAction(action) },
-                    modifier = Modifier.weight(1f),
-                )
-            }
-        }
+    secondary.forEach { action ->
+        SecondaryActionButton(
+            action = action,
+            enabled = enabled,
+            onClick = { onAction(action) },
+        )
         Spacer(modifier = Modifier.height(10.dp))
     }
 
